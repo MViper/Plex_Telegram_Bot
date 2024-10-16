@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="img/Viper-plex-logo.png">
+    <title>Viper-Plex - Meldung von Bugs und Funktionswünschen</title>
+</head>
+<body>
+    <div class="logo-container">
+        <a href="index.html">
+            <img src="img/Viper-plex-logo.png" alt="Viper-Plex Logo" class="logo">
+        </a>
+    </div>
+    <div class="welcome-box">
+        <h1>Willkommen bei Viper-Plex</h1>
+        <nav class="navbar">
+            <div class="navbar-container">
+                <a href="index.html" class="navbar-link">Home</a>
+                <a href="wunsch.html" class="navbar-link">Film & Serien Wunsch</a>
+                <a href="anleitung.html" class="navbar-link">Anleitung</a>
+                <a href="funktionen.html" class="navbar-link">Funktionen</a>
+                <a href="faq.html" class="navbar-link">FAQs</a>
+                <a href="kontakt.html" class="navbar-link">Kontakt</a>
+                <a href="link.html" class="navbar-link">Links</a>
+                <a href="report.html" class="navbar-link">Meldungen</a>
+                <a href="admin.html" class="navbar-link">Admin</a>
+            </div>
+        </nav>
+        <label class="switch">
+            <input type="checkbox" id="dark-mode-toggle">
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <div class="container">
+        <main>
+            <h2>Bug oder Funktionswunsch melden</h2>
+            <form id="report-form">
+                <label for="report-type">Typ:</label>
+                <select id="report-type" required>
+                    <option value="Bug">Bug</option>
+                    <option value="Funktionswunsch">Funktionswunsch</option>
+                </select>
+                
+                <label for="username">Benutzername:</label>
+                <input type="text" id="username" placeholder="Benutzername" required>
+
+                <label for="message">Nachricht:</label>
+                <textarea id="message" placeholder="Beschreibe den Bug oder den Funktionswunsch" required></textarea>
+
+                <button type="submit">Melden</button>
+            </form>
+
+            <!-- Bestätigungsmeldung -->
+            <div id="confirmation" style="display: none; margin-top: 20px;">
+                <p>Vielen Dank! Deine Nachricht wurde erfolgreich gesendet.</p>
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 Viper-Plex. Alle Rechte vorbehalten.</p>
+    </footer>
+
+    <div id="changelog-popup" class="popup">
+        <div class="popup-content">
+            <span class="close" id="close-popup">&times;</span>
+            <h2>Changelog</h2>
+            <ul id="changelog-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('report-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const type = document.getElementById('report-type').value;
+            const user = { name: document.getElementById('username').value };
+            const message = document.getElementById('message').value;
+
+            fetch('/api/submit-report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, user, message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Bestätigung anzeigen
+                document.getElementById('confirmation').style.display = 'block';
+                
+                // Formular leeren
+                document.getElementById('report-form').reset();
+
+                // Bestätigung nach 5 Sekunden ausblenden
+                setTimeout(() => {
+                    document.getElementById('confirmation').style.display = 'none';
+                }, 5000);
+            })
+            .catch(error => {
+                console.error('Fehler beim Übermitteln des Berichts:', error);
+                alert('Es gab ein Problem beim Senden des Berichts. Bitte versuche es später erneut.');
+            });
+        });
+        // Darkmode umschalten
+        const toggle = document.getElementById('dark-mode-toggle');
+
+        // Darkmode-Zustand beim Laden der Seite überprüfen und anwenden
+        const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
+        toggle.checked = darkModeEnabled;
+        if (darkModeEnabled) {
+            document.body.classList.add('dark-mode');
+        }
+
+        toggle.addEventListener('change', () => {
+            const isChecked = toggle.checked;
+            document.body.classList.toggle('dark-mode', isChecked);
+            // Speichere den Zustand in localStorage
+            localStorage.setItem('darkMode', isChecked);
+        });
+    </script>
+</body>
+</html>

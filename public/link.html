@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" type="image/png" href="img/Viper-plex-logo.png">
+    
+    <title>Viper-Plex Links</title>
+    
+</head>
+<body>
+     <!-- Logo separat einfügen -->
+     <div class="logo-container">
+        <a href="index.html">
+            <img src="img/Viper-plex-logo.png" alt="Viper-Plex Logo" class="logo">
+        </a>
+    </div>
+    <div class="welcome-box">
+        <h1>Viper-Plex Links</h1>
+        <nav class="navbar">
+            <div class="navbar-container">
+                <a href="index.html" class="navbar-link">Home</a>
+                <a href="wunsch.html" class="navbar-link">Film & Serien wunsch</a>
+                <a href="anleitung.html" class="navbar-link">Anleitung</a>
+                <a href="funktionen.html" class="navbar-link">Funktionen</a>
+                <a href="faq.html" class="navbar-link">FAQs</a>
+                <a href="kontakt.html" class="navbar-link">Kontakt</a>
+                <a href="link.html" class="navbar-link">Links</a>
+                <a href="report.html" class="navbar-link">Meldungen</a>
+                <a href="admin.html" class="navbar-link">Admin</a>
+            </div>
+        </nav>
+        <label class="switch">
+            <input type="checkbox" id="dark-mode-toggle">
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <div class="container">
+        <main>
+            <h3>Wichtige Links</h3></br>
+            <ul class="links-list">
+                <li><a href="https://git.viper.ipv64.net/M_Viper/Plex-Telegram-Bot" target="_blank"><i class="fab fa-git-alt"></i> Gitea</a></li>
+                <li><a href="https://plex.viper-918.myds.me" target="_blank"><i class="fas fa-globe"></i> Plex Webseite</a></li>
+                <li><a href="https://m-viper.de" target="_blank"><i class="fas fa-home"></i> Webseite</a></li>
+                <li><a href="https://t.me/M_Viper04" target="_blank"><i class="fab fa-telegram-plane"></i> Telegram</a></li>
+                <li><a href="https://git.viper.ipv64.net/M_Viper/Plex-Telegram-Bot/issues" target="_blank"><i class="fas fa-comment-dots"></i> Feedback & Vorschläge</a></li>
+            </ul>
+            
+        </main>
+        <aside class="sidebar">
+            <div class="gitea-box">
+                <p>Sieh dir den Code auf <a href="https://git.viper.ipv64.net/M_Viper/Plex-Telegram-Bot" target="_blank">Gitea</a> an!</p>
+                <p>Aktuelle Version: <span id="bot-version"></span></p>
+                <div class="telegram-connect-box">
+                    <p>Verbinde dich mit unserem Telegram-Bot!</p>
+                    <a id="telegram-link" href="#" target="_blank">Jetzt verbinden</a>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 Viper-Plex. Alle Rechte vorbehalten.</p>
+    </footer>
+
+    <script>
+        // Funktion, um die Umgebungsvariablen abzurufen
+        const fetchEnvVariables = async () => {
+            const response = await fetch('/api/env');
+            const data = await response.json();
+
+            document.getElementById('bot-alias').textContent = data.botAlias;
+            document.getElementById('telegram-link').href = data.telegramLink;
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/api/telegram-link') // API-Endpunkt zum Abrufen des Telegram-Links
+                .then(response => response.json())
+                .then(data => {
+                    const telegramLink = document.getElementById('telegram-link');
+                    telegramLink.href = data.link; // Setze den Link im Anchor-Tag
+                })
+                .catch(error => console.error('Fehler beim Abrufen des Telegram-Links:', error));
+
+            // Version abrufen
+            fetch('/api/bot-version')
+                .then(response => response.json())
+                .then(data => {
+                    const botVersion = document.getElementById('bot-version');
+                    botVersion.textContent = data.version; // Setze die Versionsnummer
+                })
+                .catch(error => console.error('Fehler beim Abrufen der Bot-Version:', error));
+
+            // Darkmode umschalten
+            const toggle = document.getElementById('dark-mode-toggle');
+
+            // Darkmode-Zustand beim Laden der Seite überprüfen und anwenden
+            const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
+            toggle.checked = darkModeEnabled;
+            if (darkModeEnabled) {
+                document.body.classList.add('dark-mode');
+            }
+
+            toggle.addEventListener('change', () => {
+                const isChecked = toggle.checked;
+                document.body.classList.toggle('dark-mode', isChecked);
+                // Speichere den Zustand in localStorage
+                localStorage.setItem('darkMode', isChecked);
+            });
+        });
+    </script>
+</body>
+</html>

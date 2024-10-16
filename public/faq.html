@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" type="image/png" href="img/Viper-plex-logo.png">
+    
+    <title>Viper-Plex FAQs</title>
+    
+</head>
+<body>
+    <div class="logo-container">
+        <a href="index.html">
+            <img src="img/Viper-plex-logo.png" alt="Viper-Plex Logo" class="logo">
+        </a>
+    </div>
+    <div class="welcome-box">
+        <h1>Viper-Plex FAQs</h1>
+        <nav class="navbar">
+            <div class="navbar-container">
+                <a href="index.html" class="navbar-link">Home</a>
+                <a href="wunsch.html" class="navbar-link">Film & Serien Wunsch</a>
+                <a href="anleitung.html" class="navbar-link">Anleitung</a>
+                <a href="funktionen.html" class="navbar-link">Funktionen</a>
+                <a href="faq.html" class="navbar-link">FAQs</a>
+                <a href="kontakt.html" class="navbar-link">Kontakt</a>
+                <a href="link.html" class="navbar-link">Links</a>
+                <a href="report.html" class="navbar-link">Meldungen</a>
+                <a href="admin.html" class="navbar-link">Admin</a>
+            </div>
+        </nav>
+        <label class="switch">
+            <input type="checkbox" id="dark-mode-toggle">
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <div class="container">
+        <main class="faq-container" id="faq-section">
+            <h2>Häufig gestellte Fragen</h2>
+            <p>Bitte warten, während die FAQs geladen werden...</p>
+        </main>
+        <aside class="sidebar">
+            <div class="gitea-box">
+                <p>Sieh dir den Code auf <a href="https://git.viper.ipv64.net/M_Viper/Plex-Telegram-Bot" target="_blank">Gitea</a> an!</p>
+                <p>Aktuelle Version: <span id="bot-version"></span></p>
+                <div class="telegram-connect-box">
+                    <p>Verbinde dich mit unserem Telegram-Bot!</p>
+                    <a id="telegram-link" href="#" target="_blank">Jetzt verbinden</a>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 Viper-Plex. Alle Rechte vorbehalten.</p>
+    </footer>
+
+    <script>
+        // Funktion zum Abrufen der FAQs
+        function fetchFaqs() {
+            fetch('/api/faqs')
+                .then(response => response.json())
+                .then(data => {
+                    const faqSection = document.getElementById('faq-section');
+                    faqSection.innerHTML = ''; // Leere den Inhalt zuerst
+
+                    if (data.length === 0) {
+                        faqSection.innerHTML = '<p><h3>Es gibt derzeit keine FAQs.</h3></p>';
+                    } else {
+                        data.forEach((faq, index) => {
+                            const faqItem = document.createElement('div');
+                            faqItem.classList.add('faq-item');
+                            
+                            const faqToggle = document.createElement('div');
+                            faqToggle.classList.add('faq-toggle');
+                            faqToggle.innerHTML = `<h3 class="faq-question">${index + 1}. ${faq.question}</h3>
+                                                   <i class="fas fa-chevron-down arrow"></i>`;
+                            faqItem.appendChild(faqToggle);
+
+                            const faqAnswer = document.createElement('p');
+                            faqAnswer.classList.add('faq-answer');
+                            faqAnswer.innerText = faq.answer;
+                            faqItem.appendChild(faqAnswer);
+                            
+                            // Event-Listener hinzufügen, um die Antwort anzuzeigen oder auszublenden
+                            faqToggle.addEventListener('click', () => {
+                                faqAnswer.classList.toggle('show');
+                                const arrow = faqToggle.querySelector('.arrow');
+                                arrow.style.transform = faqAnswer.classList.contains('show') ? 'rotate(180deg)' : 'rotate(0deg)';
+                            });
+                            
+                            faqSection.appendChild(faqItem);
+                        });
+                    }
+                })
+                .catch(error => console.error('Fehler beim Abrufen der FAQs:', error));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // FAQs beim Laden der Seite abrufen
+            fetchFaqs();
+
+            // Darkmode umschalten
+            const toggle = document.getElementById('dark-mode-toggle');
+
+            // Darkmode-Zustand beim Laden der Seite überprüfen und anwenden
+            const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
+            toggle.checked = darkModeEnabled;
+            if (darkModeEnabled) {
+                document.body.classList.add('dark-mode');
+            }
+
+            toggle.addEventListener('change', () => {
+                const isChecked = toggle.checked;
+                document.body.classList.toggle('dark-mode', isChecked);
+                // Speichere den Zustand in localStorage
+                localStorage.setItem('darkMode', isChecked);
+            });
+
+            // Version abrufen
+            fetch('/api/bot-version')
+                .then(response => response.json())
+                .then(data => {
+                    const botVersion = document.getElementById('bot-version');
+                    botVersion.textContent = data.version; // Setze die Versionsnummer
+                })
+                .catch(error => console.error('Fehler beim Abrufen der Bot-Version:', error));
+        });
+    </script>
+</body>
+</html>

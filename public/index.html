@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="img/Viper-plex-logo.png">
+    <title>Viper-Plex</title>
+</head>
+<body>
+     <!-- Logo separat einfügen -->
+     <div class="logo-container">
+        <a href="index.html">
+            <img src="img/Viper-plex-logo.png" alt="Viper-Plex Logo" class="logo">
+        </a>
+    </div>
+    <div class="welcome-box">
+        <h1>Willkommen bei Viper-Plex</h1>
+        <nav class="navbar">
+            <div class="navbar-container">
+                <a href="index.html" class="navbar-link">Home</a>
+                <a href="wunsch.html" class="navbar-link">Film & Serien Wunsch</a>
+                <a href="anleitung.html" class="navbar-link">Anleitung</a>
+                <a href="funktionen.html" class="navbar-link">Funktionen</a>
+                <a href="faq.html" class="navbar-link">FAQs</a>
+                <a href="kontakt.html" class="navbar-link">Kontakt</a>
+                <a href="link.html" class="navbar-link">Links</a>
+                <a href="report.html" class="navbar-link">Meldungen</a>
+                <a href="admin.html" class="navbar-link">Admin</a>
+            </div>
+        </nav>
+        <label class="switch">
+            <input type="checkbox" id="dark-mode-toggle">
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <div class="container">
+        <main>
+            <div class="movies-box">
+                <h2>Neueste Filme</h2>
+                <ul id="movies-list"></ul>
+            </div>
+        </main>
+        <aside class="sidebar">
+            <div class="newsletter-box">
+                <h2>Newsletter Anmeldung</h2>
+                <form id="subscribe-form">
+                    <input type="email" id="email" placeholder="E-Mail-Adresse" required>
+                    <input type="text" id="username" placeholder="Benutzername" required>
+                    <button type="submit">Anmelden</button>
+                </form>
+            </div>
+            <div class="gitea-box">
+                <p>Sieh dir den Code auf <a href="https://git.viper.ipv64.net/M_Viper/Plex-Telegram-Bot" target="_blank">Gitea</a> an!</p>
+                <p>Aktuelle Version: <span id="bot-version"></span></p>
+                <div class="telegram-connect-box">
+                    <p>Verbinde dich mit unserem Telegram-Bot!</p>
+                    <a id="telegram-link" href="#" target="_blank">Jetzt verbinden</a>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 Viper-Plex. Alle Rechte vorbehalten.</p>
+        <span id="changelog-icon" style="cursor: pointer;">❓</span>
+    </footer>
+
+    <div id="changelog-popup" class="popup">
+        <div class="popup-content">
+            <span class="close" id="close-popup">&times;</span>
+            <h2>Changelog</h2>
+            <ul id="changelog-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        // Funktion, um die Umgebungsvariablen abzurufen
+        const fetchEnvVariables = async () => {
+            const response = await fetch('/api/env');
+            const data = await response.json();
+    
+            document.getElementById('bot-alias').textContent = data.botAlias;
+            document.getElementById('telegram-link').href = data.telegramLink;
+        };
+    
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/api/telegram-link') // API-Endpunkt zum Abrufen des Telegram-Links
+                .then(response => response.json())
+                .then(data => {
+                    const telegramLink = document.getElementById('telegram-link');
+                    telegramLink.href = data.link; // Setze den Link im Anchor-Tag
+                })
+                .catch(error => console.error('Fehler beim Abrufen des Telegram-Links:', error));
+    
+            // Version abrufen
+            fetch('/api/bot-version')
+                .then(response => response.json())
+                .then(data => {
+                    const botVersion = document.getElementById('bot-version');
+                    botVersion.textContent = data.version; // Setze die Versionsnummer
+                })
+                .catch(error => console.error('Fehler beim Abrufen der Bot-Version:', error));
+    
+            // Funktion, um die neuesten Filme abzurufen
+            async function fetchLatestMovies() {
+                try {
+                    const response = await fetch('/api/latest-movies'); // API-URL
+                    const movies = await response.json(); // Filme abrufen
+                    const moviesList = document.getElementById('movies-list');
+
+                    // Leere die Liste, bevor du neue Filme hinzufügst
+                    moviesList.innerHTML = '';
+
+                    // Füge die neuesten Filme zur Liste hinzu
+                    movies.forEach(movie => {
+                        const listItem = document.createElement('li');
+                        listItem.classList.add('movie-item'); // Füge Klasse hinzu für CSS
+
+                        // Erstelle das Coverbild
+                        const coverImage = document.createElement('img');
+                        coverImage.src = movie.coverImage; // URL des Coverbilds
+                        coverImage.alt = movie.title; // Alternativtext für das Bild
+
+                        // Überprüfen, ob das Bild geladen werden kann
+                        coverImage.onerror = () => {
+                            console.error(`Konnte das Bild für ${movie.title} nicht laden: ${coverImage.src}`);
+                            coverImage.src = 'fallback-image-url.jpg'; // Fallback-Bild, wenn das Bild nicht geladen werden kann
+                        };
+
+                        // Füge das Bild zur Liste hinzu
+                        listItem.appendChild(coverImage);
+                        moviesList.appendChild(listItem);
+                    });
+
+                    // Animation für das Einblenden der Filme
+                    requestAnimationFrame(() => {
+                        moviesList.childNodes.forEach((item, index) => {
+                            setTimeout(() => {
+                                item.style.opacity = 1; // Opazität für sanftes Einblenden
+                            }, index * 100); // Verzögerung für jeden Film
+                        });
+                    });
+
+                } catch (error) {
+                    console.error('Fehler beim Abrufen der Filme:', error);
+                }
+            }
+
+            // Event-Listener für das Formular
+            document.getElementById('subscribe-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const email = document.getElementById('email').value;
+                const username = document.getElementById('username').value;
+
+                // Generiere eine Dummy-Chat-ID
+                const chatId = Math.floor(Math.random() * 1000000); // Zufällige Zahl zwischen 0 und 999999
+
+                fetch('/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, chatId, username })
+                })
+                .then(response => response.text())
+                .then(data => alert(data))
+                .catch(error => alert('Fehler: ' + error));
+            });
+
+            // Darkmode umschalten
+            const toggle = document.getElementById('dark-mode-toggle');
+
+            // Darkmode-Zustand beim Laden der Seite überprüfen und anwenden
+            const darkModeEnabled = localStorage.getItem('darkMode') === 'true';
+            toggle.checked = darkModeEnabled;
+            if (darkModeEnabled) {
+                document.body.classList.add('dark-mode');
+            }
+
+            toggle.addEventListener('change', () => {
+                const isChecked = toggle.checked;
+                document.body.classList.toggle('dark-mode', isChecked);
+                // Speichere den Zustand in localStorage
+                localStorage.setItem('darkMode', isChecked);
+            });
+
+            // Beim Laden der Seite die neuesten Filme abrufen
+            window.onload = fetchLatestMovies;
+
+            // Aktualisiere die Filme jede Minute (60000 Millisekunden)
+            setInterval(fetchLatestMovies, 60000);
+
+            // Changelog-Daten
+            const changelogData = {
+            "changelog": [
+                {
+                    "version": "1.8.2",  
+                    "date": "2024-10-16", 
+                    "changes": [
+                        "Neue FAQ-Seite für Benutzer hinzugefügt.",
+                        "Benutzerfreundliche Darstellung der FAQs.",
+                        "Verbesserte Performance bei der Datenabfrage.",
+                        "Diverse kleinere Fehlerbehebungen."
+                    ]
+                },
+                {
+                    "version": "1.8.1",
+                    "date": "2024-10-16",
+                    "changes": [
+                        "Bugfix mit Darkmode.",
+                        "Dev-Report hinzugefügt (Bug-Report & Funktionswünsche)."
+                    ]
+                },
+                {
+                    "version": "1.8.0",
+                    "date": "2024-10-14",
+                    "changes": [
+                        "Neue Funktionen hinzugefügt.",
+                        "Verbesserte Benutzeroberfläche für die Admin-Seite.",
+                        "Optimierungen im Bot für schnellere Reaktionen."
+                    ]
+                },
+                {
+                    "version": "1.7.9",
+                    "date": "2024-10-10",
+                    "changes": [
+                        "Fehlerbehebungen und Optimierungen.",
+                        "Verbesserte Sicherheit der Benutzerdaten.",
+                        "Aktualisierte Dokumentation."
+                    ]
+                },
+                {
+                    "version": "1.7.8",
+                    "date": "2024-10-01",
+                    "changes": [
+                        "Erste Implementierung des Admin-Dashboards.",
+                        "Funktionalität für das Abrufen der neuesten Filme hinzugefügt.",
+                        "Benutzeranpassungen für die Dunkelmodus-Option."
+                    ]
+                }
+            ]
+        };
+
+            // Changelog im Popup anzeigen
+            const changelogList = document.getElementById('changelog-list');
+
+            changelogData.changelog.forEach(entry => {
+                const changelogItem = document.createElement('div');
+                changelogItem.classList.add('changelog-entry'); // Füge eine Klasse für das Styling hinzu
+
+                changelogItem.innerHTML = `
+                    <strong>Version ${entry.version} (${entry.date}):</strong>
+                    <ul>
+                        ${entry.changes.map(change => `<li>${change}</li>`).join('')}
+                    </ul>
+                `;
+                changelogList.appendChild(changelogItem);
+            });
+
+            // Changelog-Popup-Elemente
+            const changelogIcon = document.getElementById('changelog-icon');
+            const popup = document.getElementById('changelog-popup');
+            const closePopup = document.getElementById('close-popup');
+
+            // Popup öffnen
+            changelogIcon.addEventListener('click', () => {
+                popup.style.display = 'block';
+                document.body.classList.toggle('dark-mode', toggle.checked); // Darkmode bei Popup-Anzeige aktivieren
+            });
+
+            // Popup schließen
+            closePopup.addEventListener('click', () => {
+                popup.style.display = 'none';
+                document.body.classList.toggle('dark-mode', toggle.checked); // Darkmode wieder zurücksetzen
+            });
+
+            // Klick außerhalb des Popups schließt es
+            window.addEventListener('click', (event) => {
+                if (event.target === popup) {
+                    popup.style.display = 'none';
+                    document.body.classList.toggle('dark-mode', toggle.checked); // Darkmode wieder zurücksetzen
+                }
+            });
+        });
+        
+    </script>
+</body>
+</html>

@@ -1,0 +1,980 @@
+
+#content {
+    margin-left: 220px; /* Platz für die Sidebar */
+    padding: 20px;
+    
+}
+
+#login-form {
+    max-width: 500px;
+    margin: 350px 0 0 500px; /* Erhöhte obere Margin */
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+#login-form input {
+    width: 93%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#login-form button {
+    width: 100%;
+    padding: 10px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#login-form button:hover {
+    background-color: #575757;
+}
+
+.error-message {
+    color: red;
+    text-align: center;
+    margin-top: 10px;
+}
+
+#admin-area {
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-container {
+    flex: 1 1 30%; /* Flex-Basis für die Boxen */
+    margin: 10px;
+    min-width: 250px; /* Minimalgröße für die Boxen */
+}
+
+.dashboard-box {
+    background-color: #fff;
+    border-radius: 5px;
+    padding: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: relative; /* Für die Resize-Buttons */
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dashboard-header h3 {
+    margin: 0;
+}
+
+.resize {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.large {
+    transform: scale(1.05); /* Vergrößert die Box */
+    transition: transform 0.3s;
+}
+
+#bot-uptime {
+    background-color: #e8f0fe; /* Heller Hintergrund für die Bot-Laufzeit-Box */
+    border: 1px solid #b0d4ff; /* Rand in einem hellen Blau */
+    border-radius: 15px; /* Abgerundete Ecken */
+    padding: 10px; /* Kleineren Innenabstand */
+    width: 400px; /* Feste Breite für die Box */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Schatten für die Box */
+    transition: transform 0.2s; /* Weicher Übergang für Hover-Effekte */
+    margin: 0 auto; /* Zentriert die Box horizontal */
+}
+
+#dashboard {
+    display: flex; /* Flexbox aktivieren */
+    flex-wrap: wrap; /* Boxen umbrechen, um in der nächsten Zeile anzuzeigen */
+    gap: 20px; /* Abstand zwischen den Boxen */
+    margin-top: 100px; /* Abstand nach oben */
+    justify-content: center; /* Zentriert die Boxen im Container */
+}
+
+/* Box-spezifische Styles für die Bot-Laufzeit- und Server-Info-Box */
+#bot-uptime, #server-info {
+    background-color: #e8f0fe; /* Heller Hintergrund für die Bot-Laufzeit-Box */
+    border: 1px solid #b0d4ff; /* Rand in einem hellen Blau */
+    border-radius: 15px; /* Abgerundete Ecken */
+    padding: 10px; /* Kleineren Innenabstand */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Schatten für die Box */
+    transition: transform 0.2s; /* Weicher Übergang für Hover-Effekte */
+    flex: 1 1 300px; /* Flex-Basis für die Boxen */
+    margin: 10px; /* Abstand um die Boxen herum */
+}
+
+/* Server-Info Box spezifische Styles */
+#server-info {
+    background-color: #f0f4ff; /* Heller Hintergrund für die Server-Info-Box */
+    border: 1px solid #b0d4ff; /* Rand in einem hellen Blau */
+    border-radius: 15px; /* Abgerundete Ecken */
+    padding: 10px; /* Innenabstand */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Schatten für die Box */
+    transition: transform 0.2s; /* Weicher Übergang für Hover-Effekte */
+    width: 400px; /* Feste Breite für die Box */
+    flex: 1 1 300px; /* Flex-Basis für die Boxen */
+    margin: -215px 550px; /* Oben: -20px für nach oben, Rechts: 20px für nach rechts */
+}
+
+/* Die Höhe der Boxen anpassen, falls notwendig */
+#bot-uptime, #server-info {
+    min-height: auto; /* Mindesthöhe für die Boxen */
+}
+
+#file-check {
+    background-color: #e8f0fe; /* Heller Hintergrund für die Box */
+    border: 1px solid #b0d4ff; /* Rand in einem hellen Blau */
+    border-radius: 15px; /* Abgerundete Ecken */
+    padding: 10px; /* Kleineren Innenabstand */
+    width: 400px; /* Feste Breite für die Box */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Schatten für die Box */
+    transition: transform 0.2s; /* Weicher Übergang für Hover-Effekte */
+    margin: -240px 1100px; /* Oben: -20px für nach oben, Rechts: 20px für nach rechts */
+}
+
+.log-container {
+    display: flex; /* Aktiviert Flexbox */
+    gap: 20px; /* Abstand zwischen den Boxen */
+}
+
+.log-box {
+    flex: 1; /* Lässt die Boxen gleichmäßig den verfügbaren Platz einnehmen */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #f9f9f9;
+}
+
+.log-box h3 {
+    margin: 0 0 10px;
+}
+
+.log-box pre {
+    white-space: pre-wrap; /* Damit lange Texte umgebrochen werden */
+    overflow-x: auto; /* Scrollbalken hinzufügen, wenn der Text zu lang ist */
+}
+
+.dashboard-header {
+    display: flex; /* Flexbox für den Header */
+    justify-content: space-between; /* Abstand zwischen Titel und Button */
+    align-items: center; /* Vertikale Ausrichtung */
+}
+
+.dashboard-header h3 {
+    margin: 0; /* Kein Margin für den Titel */
+    color: #333; /* Dunkle Schriftfarbe */
+}
+
+.resize {
+    background: none; /* Kein Hintergrund */
+    border: none; /* Kein Rahmen */
+    cursor: pointer; /* Zeiger beim Hover */
+    font-size: 16px; /* Schriftgröße für den Resize-Button */
+    color: #007bff; /* Blaue Schriftfarbe */
+}
+
+.resize:hover {
+    color: #0056b3; /* Dunklerer Blauton beim Hover */
+}
+
+/* CSS für die offenen Wünsche */
+.wishes-box {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    background-color: #f9f9f9;
+}
+
+.wish-item {
+    border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+}
+
+.wish-item:last-child {
+    border-bottom: none;
+}
+
+.wish-message {
+    font-size: 1.1em;
+}
+
+.wish-buttons {
+    margin-top: 10px;
+}
+
+.wish-button {
+    background-color: #28a745; /* Grün für erfüllt */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.wish-button.delete {
+    background-color: #dc3545; /* Rot für löschen */
+}
+
+.wish-button:hover {
+    opacity: 0.8;
+}
+
+/* Feedback-Bereich */
+#feedback {
+    padding: 20px;
+    margin-top: 60px;
+    background-color: #f9f9f9; /* Helle Hintergrundfarbe für den Feedback-Bereich */
+    border: 1px solid #ddd; /* Leichter Rahmen um den Bereich */
+    border-radius: 5px; /* Abgerundete Ecken */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sanfte Schatten für Tiefe */
+}
+
+/* Feedback-Inhalt */
+#feedback-content {
+    margin-top: 10px; /* Abstand über dem Inhalt */
+}
+
+/* Einzelne Feedback-Nachricht */
+.feedback-item {
+    padding: 10px;
+    background-color: #ffffff; /* Weißer Hintergrund für jede Nachricht */
+    border: 1px solid #e0e0e0; /* Leichter Rahmen um jede Nachricht */
+    border-radius: 4px; /* Abgerundete Ecken für jede Nachricht */
+    margin-bottom: 10px; /* Abstand zwischen den Nachrichten */
+    transition: background-color 0.3s; /* Weicher Übergang für Hover-Effekte */
+}
+
+.feedback-item:hover {
+    background-color: #f1f1f1; /* Hellgraue Hintergrundfarbe beim Hover */
+}
+
+/* Feedback-Nachrichtstext */
+.feedback-message {
+    font-size: 14px; /* Schriftgröße für die Nachricht */
+    color: #333; /* Dunkle Schriftfarbe */
+}
+
+#admin-help {
+    background-color: #f9f9f9; /* Heller Hintergrund für die Hilfe-Sektion */
+    padding: 20px; /* Innenabstand */
+    border-radius: 10px; /* Abgerundete Ecken */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Schatten für die Box */
+    margin-top: 80px; /* Abstand nach oben */
+    display: block; /* Standardmäßig sichtbar */
+    width: 800px;
+    margin-left: 350px;
+    margin-top: 80px;
+}
+
+#admin-help h3 {
+    color: #333; /* Dunkle Schriftfarbe für die Überschrift */
+    margin-top: 0; /* Kein Margin für die Überschrift */
+}
+
+#admin-help p {
+    line-height: 1.5; /* Zeilenhöhe für besseren Textabstand */
+    color: #555; /* Etwas hellere Schriftfarbe für den Text */
+}
+
+#admin-help ul {
+    padding-left: 20px; /* Linker Innenabstand für die Liste */
+    color: #333; /* Dunkle Schriftfarbe für die Listen */
+}
+
+#admin-help ul li {
+    margin-bottom: 10px; /* Abstand zwischen den Listenelementen */
+}
+
+#admin-help code {
+    background-color: #e8e8e8; /* Heller Hintergrund für Code-Elemente */
+    padding: 2px 4px; /* Innenabstand für Code-Elemente */
+    border-radius: 3px; /* Abgerundete Ecken für Code-Elemente */
+    font-family: monospace; /* Monospace-Schriftart für Code */
+}
+
+
+
+#bot-restart {
+    background-color: #e8f0fe; /* Heller Hintergrund für die Bot-Laufzeit-Box */
+    border: 1px solid #b0d4ff; /* Rand in einem hellen Blau */
+    border-radius: 15px; /* Abgerundete Ecken */
+    padding: 10px; /* Kleineren Innenabstand */
+    width: 400px; /* Feste Breite für die Box */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Schatten für die Box */
+    transition: transform 0.2s; /* Weicher Übergang für Hover-Effekte */
+    margin: 0 auto; /* Zentriert die Box horizontal */
+    left: -570px; /* Verschiebt die Box 50 Pixel nach links */
+}
+
+#send-message {
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-top: 100px;
+    background-color: #f9f9f9;
+}
+
+#send-message h2 {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+#send-message textarea {
+    width: 98%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+    resize: none; /* Verhindert das Vergrößern des Textfeldes */
+}
+
+#send-message button {
+    padding: 10px 15px;
+    font-size: 1em;
+    color: white;
+    background-color: #28a745; /* Grüner Hintergrund */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#send-message button:hover {
+    background-color: #218838; /* Dunkleres Grün beim Hover */
+}
+
+#send-message-status {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+/* Stil für den Inhalt der Medienanzahl */
+#media-count-content {
+    margin-top: 10px; /* Abstand oben */
+    font-size: 1.2em; /* Schriftgröße */
+}
+
+/* Stil für den Lade-Text */
+#media-count-content.loading {
+    color: #ffcc00; /* Gelbe Farbe für Lade-Text */
+    font-style: italic; /* Kursivschrift */
+}
+
+#media-count {
+    background-color: #e8f0fe; /* Heller Hintergrund für die Bot-Laufzeit-Box */
+    border: 1px solid #b0d4ff; /* Rand in einem hellen Blau */
+    border-radius: 15px; /* Abgerundete Ecken */
+    padding: 10px; /* Kleineren Innenabstand */
+    width: 400px; /* Feste Breite für die Box */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Schatten für die Box */
+    transition: transform 0.2s; /* Weicher Übergang für Hover-Effekte */
+    margin: 0 auto; /* Zentriert die Box horizontal */
+    left: -570px; /* Verschiebt die Box 50 Pixel nach links */
+}
+
+#backup {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#backup h2 {
+    margin: 0 0 10px;
+}
+
+#backup button {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#backup button:hover {
+    background-color: #0056b3;
+}
+
+.backup-password {
+    margin-left: 10px;
+}
+
+
+
+/* Modernisiertes Design für Header, Footer und Sidebar */
+
+/* Body */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+/* Sidebar */
+#sidebar {
+    width: 240px;
+    margin-top: 130px;
+    background-color: #1f2937;
+    color: #fff;
+    padding: 20px;
+    position: fixed;
+    height: calc(100% - 130px);
+    overflow-y: auto;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+#sidebar h2 {
+    text-align: center;
+    font-size: 1.5em;
+    margin-bottom: 30px;
+}
+
+#sidebar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#sidebar ul li {
+    margin: 15px 0;
+}
+
+#sidebar ul li a {
+    color: #fff;
+    text-decoration: none;
+    display: block;
+    padding: 12px 15px;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+}
+
+#sidebar ul li a:hover {
+    background-color: #3b82f6;
+}
+
+/* Content */
+#content {
+    margin-left: 260px;
+    padding: 30px;
+    background-color: #f8fafc;
+    min-height: 90vh;
+}
+
+/* Header (Willkommensbox) */
+.welcome-box {
+    background-color: #1f2937;
+    color: white;
+    padding: 15px 20px; /* Padding verkleinert */
+    border-radius: 0 0 15px 15px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    font-size: 1.2em; /* Schriftgröße verkleinert */
+    font-weight: 300;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 999;
+    border-bottom: 4px solid #3b82f6;
+}
+
+
+/* Footer */
+.footer {
+    background-color: #1f2937;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    font-size: 0.9em;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    left: 0;
+    border-top: 4px solid #3b82f6;
+}
+
+/* Navbar Links */
+.navbar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.navbar-link {
+    margin: 0 15px;
+    text-decoration: none;
+    color: white;
+    font-size: 1em;
+    transition: color 0.3s;
+}
+
+.navbar-link:hover {
+    color: #3b82f6;
+}
+
+/* Logo-Container separat und links oben positionieren */
+.logo-container {
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    z-index: 1000; /* Über anderen Elementen */
+}
+
+.logo {
+    height: 100px; /* Vergrößere das Logo nach Bedarf */
+    position: fixed; /* Fixiere das Logo */
+    top: 40px; /* Abstand vom oberen Rand */
+    left: 40px; /* Abstand vom linken Rand */
+    z-index: 1000; /* Stelle sicher, dass das Logo über anderen Inhalten liegt */
+}
+
+#backups {
+    padding: 20px;
+    margin-top: 80px; /* Hier den gewünschten Abstand anpassen */
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 80px;
+}
+
+#backups h2 {
+    font-size: 24px;
+    margin-bottom: 15px;
+}
+
+#backups h3 {
+    font-size: 20px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+#create-backup {
+    padding: 10px 15px;
+    background-color: #007bff; /* Grüner Hintergrund */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#create-backup:hover {
+    background-color: #104e91; /* Dunkleres Grün beim Hover */
+}
+
+#backups-list {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
+#backups-list div {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+#backups-list div:last-child {
+    border-bottom: none; /* Entferne die untere Grenze vom letzten Element */
+}
+
+#backups-list span {
+    margin-right: 10px;
+}
+
+#backups-list a {
+    color: #2196F3; /* Blaue Farbe für Links */
+    text-decoration: none;
+}
+
+#backups-list a:hover {
+    text-decoration: underline; /* Unterstreichung beim Hover */
+}
+
+.backup-button {
+    padding: 8px 16px;
+    margin: 5px;
+    background-color: #4CAF50;
+    color: white !important; /* Erzwingt die Schriftfarbe auf weiß */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none; /* Für die Download-Links */
+    display: inline-block;
+}
+
+.backup-button:hover {
+    background-color: #45a049;
+}
+
+.delete-backup {
+    background-color: #f44336; /* Rot für Löschen */
+}
+
+.delete-backup:hover {
+    background-color: #e53935;
+}
+
+#debug-toggle {
+    margin-bottom: 20px; /* Abstand unterhalb des Buttons */
+}
+
+#debug-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Weiche Übergänge bei Farbwechsel */
+}
+
+#debug-button:hover {
+    opacity: 0.8; /* Leichte Transparenz beim Hover */
+}
+
+.log-box {
+    position: relative; /* Setzt die Positionierung für das Container-Element */
+    padding: 20px; /* Innenabstand der Box */
+}
+
+.log-header {
+    display: flex; /* Flexbox verwenden */
+    justify-content: space-between; /* Platz zwischen Titel und Button */
+    align-items: flex-start; /* Elemente oben ausrichten */
+    margin-bottom: 8px; /* Abstand zwischen Header und Inhalt */
+}
+
+.log-button {
+    background-color: #4CAF50; /* Beispiel Hintergrundfarbe */
+    color: white; /* Beispiel Textfarbe */
+    border: none; /* Keine Umrandung */
+    padding: 6px 10px; /* Innenabstand */
+    cursor: pointer; /* Zeigt Hand-Cursor an */
+    position: relative; /* Für zusätzliche Anpassungen */
+    /* Wenn nötig, kannst du hier auch einen spezifischen Top-Wert setzen */
+}
+
+.log-button:hover {
+    background-color: #45a049; /* Hintergrundfarbe beim Hover */
+}
+
+.error-notification {
+    background-color: red !important; /* Erzwingt den roten Hintergrund */
+    color: white !important; /* Weißer Text */
+    padding: 10px 20px;
+    margin-top: 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 9999; /* Über allen anderen Elementen */
+    position: fixed; /* Fixiert die Position */
+    top: 10px; /* Abstand vom oberen Rand */
+    right: 10px; /* Abstand vom rechten Rand */
+    max-width: 300px; /* Optionale maximale Breite */
+    word-wrap: break-word; /* Textumbruch */
+}
+
+#debug-message-box {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: orange;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    z-index: 1000;
+}
+
+/* Container für den Benutzerbereich */
+#users {
+    padding: 20px; /* Innenabstand für den Benutzerbereich */
+    background-color: #f4f4f4; /* Hintergrundfarbe des Benutzerbereichs */
+    border-radius: 8px; /* Abgerundete Ecken */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Schatten für den Benutzerbereich */
+    margin-bottom: 20px; /* Abstand nach unten für den Benutzerbereich */
+    margin-top: 80px;
+}
+
+/* Überschrift für den Benutzerbereich */
+#users h2 {
+    margin-bottom: 15px; /* Abstand unter der Überschrift */
+    font-size: 2em; /* Schriftgröße für die Überschrift */
+    color: #333; /* Textfarbe */
+}
+
+/* Container für die Benutzerinformationen */
+#users-content {
+    display: flex; /* Flexbox für die Benutzerboxen */
+    flex-wrap: wrap; /* Zeilenumbruch bei Überlauf */
+    justify-content: space-between; /* Gleiche Abstände zwischen den Boxen */
+}
+
+/* Stil für jede Benutzerbox */
+.user-box {
+    background-color: #fff; /* Hintergrundfarbe der Box */
+    border: 1px solid #2196F3; /* Rahmen der Box */
+    border-radius: 8px; /* Abgerundete Ecken */
+    padding: 15px; /* Innenabstand */
+    width: calc(33.33% - 20px); /* Breite der Box (3 Boxen nebeneinander mit Abstand) */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Schatten für die Box */
+    margin-bottom: 20px; /* Abstand nach unten für die Boxen */
+    transition: box-shadow 0.3s; /* Übergang für Schatteneffekt */
+}
+
+/* Benutzerbox bei Hover */
+.user-box:hover {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Schatten bei Hover */
+}
+
+/* Stil für die Benutzerinformationen */
+.user-info {
+    margin-bottom: 10px; /* Abstand zwischen den Informationen */
+}
+
+/* Stil für die Überschrift (Benutzername) */
+.user-info h3 {
+    margin: 0; /* Kein Margin für den Titel */
+    font-size: 1.5em; /* Schriftgröße für den Titel */
+    color: #333; /* Textfarbe */
+}
+
+/* Stil für die anderen Benutzerinformationen */
+.user-info p {
+    margin: 5px 0; /* Vertikaler Abstand für die Texte */
+    color: #666; /* Textfarbe */
+}
+
+/* Benutzerliste */
+#users-content {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+/* Stil für jedes Benutzeritem */
+.user-item {
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #2196F3;
+    border-radius: 5px;
+    width: 280px; /* Feste Breite */
+    height: 280px; /* Feste Höhe */
+    box-sizing: border-box; /* Berücksichtigt Padding und Border in der Größe */
+    overflow: hidden; /* Versteckt Inhalte, die über die Box hinausgehen */
+}
+
+/* Stil für gerade Benutzerboxen */
+.user-item.even {
+    background-color: #faf8f8; /* Hintergrundfarbe für gerade Boxen */
+}
+
+/* Stil für ungerade Benutzerboxen */
+.user-item.odd {
+    background-color: #d6d6d6; /* Hintergrundfarbe für ungerade Boxen */
+}
+
+/* Stil für den Lösch-Button */
+.delete-user {
+    background-color: #ff4d4d; /* Rote Hintergrundfarbe */
+    color: white; /* Weißer Text */
+    border: none; /* Kein Rahmen */
+    padding: 5px 10px; /* Polsterung */
+    border-radius: 3px; /* Abgerundete Ecken */
+    cursor: pointer; /* Hand-Cursor beim Hover */
+    transition: background-color 0.3s; /* Weiche Übergänge */
+}
+
+/* Hover-Effekt für den Lösch-Button */
+.delete-user:hover {
+    background-color: #ff1a1a; /* Dunkleres Rot bei Hover */
+}
+
+/* Stil für die Überschrift der Benutzerliste */
+h2 {
+    color: #333;
+    font-size: 24px;
+    margin-bottom: 15px;
+}
+
+#dev-report-content {
+    display: flex;
+    flex-wrap: wrap; /* Erlaubt Zeilenumbruch */
+    gap: 10px; /* Abstand zwischen den Boxen */
+}
+
+.dev-report-item {
+    border-radius: 5px;
+    padding: 10px;
+    width: calc(20% - 10px);
+    box-sizing: border-box;
+    margin-top: 30px; /* Abstand nach oben */
+}
+
+.dev-report-message {
+    margin-top: 10px; /* Abstand zwischen Name und Text */
+}
+
+/* Beispiel für Typ- und Namensdarstellung */
+.dev-report-type {
+    font-weight: bold;
+}
+
+.dev-report-user {
+    margin-top: 10px; /* Abstand zwischen Typ und Benutzername */
+}
+
+.dev-report-item.bug {
+    border: 2px solid red;
+    background-color: #ffe6e6; /* Helles Rot */
+}
+
+.dev-report-item.feature-request {
+    border: 2px solid green;
+    background-color: #e6ffe6; /* Helles Grün */
+}
+
+.dev-report-type, .dev-report-user, .dev-report-message {
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+button {
+    background-color: #f44336; /* Rote Hintergrundfarbe */
+    color: white; /* Weißer Text */
+    border: none; /* Keine Rahmenlinie */
+    border-radius: 5px; /* Abgerundete Ecken */
+    padding: 8px 12px; /* Innenabstand */
+    cursor: pointer; /* Zeiger-Cursor beim Überfahren */
+    transition: background-color 0.3s; /* Übergangseffekt für den Hintergrund */
+    margin-top: 10px; /* Abstand oben */
+}
+
+button:hover {
+    background-color: #d32f2f; /* Dunkleres Rot beim Hover */
+}
+
+button:focus {
+    outline: none; /* Keine Umrandung beim Fokussieren */
+}
+
+/* Allgemeine Log-Button-Styling */
+.log-button {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.log-button:hover {
+    background-color: #0056b3;
+}
+
+/* Rote Buttons für Löschen-Aktionen */
+.red-button {
+    background-color: #dc3545;
+}
+
+.red-button:hover {
+    background-color: #c82333;
+}
+
+/* FAQ Container */
+#faq-container {
+    margin: 20px;
+    margin-top: 80px;
+    padding: 20px;
+    background-color: #f9f9f9; /* Hellgrau als Hintergrund */
+    border-radius: 8px; /* Abgerundete Ecken */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sanfte Schatten */
+}
+
+
+/* Header für FAQ */
+.log-header h3 {
+    margin-bottom: 10px;
+    font-size: 24px; /* Größerer Schriftgrad für den Titel */
+    color: #333; /* Dunkelgraue Schriftfarbe */
+}
+
+/* Buttons im Header */
+.log-button {
+    background-color: #007bff; /* Blau für die Schaltflächen */
+    color: white; /* Weiße Schrift */
+    padding: 10px 15px; /* Polsterung für die Schaltflächen */
+    border: none; /* Kein Rahmen */
+    border-radius: 5px; /* Abgerundete Ecken */
+    cursor: pointer; /* Zeiger bei Hover */
+    margin-right: 10px; /* Abstand zwischen den Schaltflächen */
+    transition: background-color 0.3s; /* Sanfter Übergang für Hover */
+}
+
+.log-button:hover {
+    background-color: #0056b3; /* Dunkleres Blau bei Hover */
+}
+
+/* Pre-Tag für FAQ-Anzeigen */
+#faq-container pre {
+    background-color: #fff; /* Weißer Hintergrund für den Textbereich */
+    border: 1px solid #ddd; /* Graue Umrandung */
+    padding: 15px; /* Polsterung für den Text */
+    border-radius: 5px; /* Abgerundete Ecken */
+    overflow-y: auto; /* Scrollbar bei Überlauf */
+    max-height: 400px; /* Maximalhöhe für den Textbereich */
+    font-family: monospace; /* Monospace-Schriftart für den FAQ-Text */
+    color: #333; /* Dunkelgraue Schriftfarbe */
+}
+
+/* Fehler- und Erfolgsmeldungen */
+.alert {
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+    display: none; /* Standardmäßig versteckt */
+}
+
+.alert.success {
+    background-color: #d4edda; /* Helle grüne Farbe für Erfolgsmeldungen */
+    color: #155724; /* Dunkelgrüne Schriftfarbe */
+}
+
+.alert.error {
+    background-color: #f8d7da; /* Helle rote Farbe für Fehlermeldungen */
+    color: #721c24; /* Dunkelrote Schriftfarbe */
+}
+
+.red-button {
+    background-color: red; /* Oder jede andere gewünschte Farbe */
+    color: white; /* Textfarbe */
+    border: none; /* Rahmen entfernen */
+    padding: 10px 15px; /* Polsterung hinzufügen */
+    cursor: pointer; /* Zeiger ändern, wenn darüber gefahren wird */
+}
+
+.red-button:hover {
+    background-color: darkred; /* Dunklere Farbe beim Hover */
+}
+
