@@ -329,54 +329,64 @@ bot.onText(/\/trailer/, (msg) => {
   });
 });
 
-// Befehl zum Abrufen des Passworts
 bot.onText(/\/passwd/, (msg) => {
   const chatId = msg.chat.id;
-  const userId = msg.from.id.toString(); // Konvertiere die userId in einen String für den Vergleich
+  const userId = msg.from.id.toString();
 
-  // Überprüfen, ob der Benutzer autorisiert ist
   if (authorizedUsers.includes(userId)) {
-    // Passwort aus der .env-Datei zurückgeben
     const password = process.env.ADMIN_PW; // Passwort aus der .env-Datei
-    const reply = `🔒 Das Passwort für den Adminbereich lautet:\n\n${password}\n\n‼️*Hinweis:* Diese Nachricht wird automatisch in 1 Minute gelöscht.`;
+    const reply = `🔒 Das Passwort für den Adminbereich lautet:\n\n<span class="tg-spoiler">${password}</span>\n\n‼️<em>Hinweis:‼\n</em> Diese Nachricht wird automatisch in 30 Sekunden gelöscht.`;
 
-    // Nachricht senden und ihre message_id speichern
-    bot.sendMessage(chatId, reply, { parse_mode: 'Markdown' }).then((sentMessage) => {
-      // Nachricht nach 1 Minute löschen
+    bot.sendMessage(chatId, reply, { 
+      parse_mode: 'HTML', 
+      protect_content: true // Inhalt schützen
+    }).then((sentMessage) => {
       setTimeout(() => {
         bot.deleteMessage(chatId, sentMessage.message_id).catch((err) => {
           console.error('Fehler beim Löschen der Antwortnachricht:', err);
         });
-      }, 60000); // 60000 ms = 1 Minute
+      }, 30000); // 30 Sekunden
     });
 
-    // Ursprünglichen Befehl löschen
     setTimeout(() => {
       bot.deleteMessage(chatId, msg.message_id).catch((err) => {
         console.error('Fehler beim Löschen der ursprünglichen Nachricht:', err);
       });
-    }, 60000); // 60000 ms = 1 Minute
+    }, 30000); // 30 Sekunden
 
+    // Nachricht an den Dev senden
+    const devMessage = `🔒 Das Passwort für den Adminbereich wurde angefordert von:\n\n\n👤 <strong>@${msg.from.username}</strong>\n\n🆔 ID: <strong>${userId}</strong>\n\n\n📅 Datum: <strong>${new Date().toLocaleDateString('de-DE')}</strong>\n\n🕒 Uhrzeit: <strong>${new Date().toLocaleTimeString('de-DE')}</strong>`;
+    
+    bot.sendMessage(process.env.DEV_CHAT_ID, devMessage, { parse_mode: 'HTML' }).catch((err) => {
+      console.error('Fehler beim Senden der Dev-Nachricht:', err);
+    });
   } else {
-    const reply = `🚫 Zugriff verweigert! \nLeider hast du keine Berechtigung, diesen Befehl auszuführen.`;
+    const reply = `🚫 Zugriff verweigert!\nLeider hast du keine Berechtigung, diesen Befehl auszuführen.`;
 
-    // Nachricht senden und nach 1 Minute löschen
-    bot.sendMessage(chatId, reply).then((sentMessage) => {
+    bot.sendMessage(chatId, reply, { 
+      parse_mode: 'HTML',
+      protect_content: true // Inhalt schützen
+    }).then((sentMessage) => {
       setTimeout(() => {
         bot.deleteMessage(chatId, sentMessage.message_id).catch((err) => {
           console.error('Fehler beim Löschen der Antwortnachricht:', err);
         });
-      }, 60000); // 1 Minute
+      }, 30000); // 30 Sekunden
     });
 
-    // Ursprünglichen Befehl löschen
     setTimeout(() => {
       bot.deleteMessage(chatId, msg.message_id).catch((err) => {
         console.error('Fehler beim Löschen der ursprünglichen Nachricht:', err);
       });
-    }, 60000); // 1 Minute
+    }, 30000); // 30 Sekunden
   }
 });
+
+
+
+
+
+
 
 const usersNightMode = {}; // Temporärer Speicher für Nachtmodus
 
