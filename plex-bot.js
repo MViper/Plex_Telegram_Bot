@@ -4744,22 +4744,11 @@ app.get('/api/admin-password', (req, res) => {
   res.json({ password: process.env.ADMIN_PW });
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+const { exec } = require('child_process');
+const path7zip = require('7zip-bin').path7za; // Pfad zu 7zip
 
 const BACKUP_DIR = path.join(__dirname, 'backups');
+const ZIP_PASSWORD = process.env.ZIP_PW; // Passwort aus der .env-Datei
 
 // Sicherstellen, dass der Backup-Ordner existiert
 if (!fs.existsSync(BACKUP_DIR)) {
@@ -4768,70 +4757,25 @@ if (!fs.existsSync(BACKUP_DIR)) {
 
 // Middleware für statische Dateien
 app.use('/backups', express.static(BACKUP_DIR));
-app.use(express.json()); // Für das Parsen von JSON-Daten
-
-// Funktion zum Überprüfen und Löschen des ältesten Backups, wenn mehr als 10 vorhanden sind
-const checkBackupCount = () => {
-    fs.readdir(BACKUP_DIR, (err, files) => {
-        if (err) {
-            console.error('Fehler beim Lesen des Backup-Verzeichnisses:', err);
-            return;
-        }
-
-        if (files.length > 6) {
-            // Ältestes Backup löschen
-            const oldestFile = files.reduce((oldest, file) => {
-                const filePath = path.join(BACKUP_DIR, file);
-                return fs.statSync(filePath).mtime < fs.statSync(path.join(BACKUP_DIR, oldest)).mtime ? file : oldest;
-            });
-
-            fs.unlink(path.join(BACKUP_DIR, oldestFile), (err) => {
-                if (err) {
-                    console.error('Fehler beim Löschen des ältesten Backups:', err);
-                } else {
-                    console.log(`Ältestes Backup gelöscht: ${oldestFile}`);
-                }
-            });
-        }
-    });
-};
 
 // API-Endpunkt für das Erstellen eines Backups
 app.post('/api/create-backup', (req, res) => {
     const backupFileName = `backup_${Date.now()}.zip`;
-    const output = fs.createWriteStream(path.join(BACKUP_DIR, backupFileName));
-    const archive = archiver('zip', {
-        zlib: { level: 9 } // Maximale Kompression
-    });
+    const backupFilePath = path.join(BACKUP_DIR, backupFileName);
 
-    // Event Listener für den Abschluss des Archivierens
-    output.on('close', () => {
+    // Erstelle das Backup als ZIP mit Passwort
+    const command = `"${path7zip}" a -tzip "${backupFilePath}" * -p${ZIP_PASSWORD} -xr!backups -xr!node_modules`;
+
+    exec(command, { cwd: __dirname }, (err, stdout, stderr) => {
+        if (err) {
+            console.error('Fehler beim Erstellen des Backups:', err);
+            return res.status(500).json({ success: false, error: 'Fehler beim Erstellen des Backups' });
+        }
+
         console.log(`Backup erfolgreich erstellt: ${backupFileName}`);
         checkBackupCount(); // Überprüfe die Anzahl der Backups
         res.json({ success: true, fileName: backupFileName });
     });
-
-    // Fehlerbehandlung für das Archiveren
-    archive.on('error', (err) => {
-        console.error('Fehler beim Erstellen des Backups:', err);
-        res.status(500).json({ success: false, error: 'Fehler beim Erstellen des Backups' });
-    });
-
-    archive.pipe(output);
-
-    // Füge alle Dateien und Ordner hinzu, außer 'backups' und 'node_modules'
-    fs.readdirSync(__dirname).forEach(file => {
-        if (file !== 'backups' && file !== 'node_modules') {
-            const filePath = path.join(__dirname, file);
-            if (fs.statSync(filePath).isDirectory()) {
-                archive.directory(filePath, file);
-            } else {
-                archive.file(filePath, { name: file });
-            }
-        }
-    });
-
-    archive.finalize();
 });
 
 // API-Endpunkt für das Abrufen der Backups
@@ -4853,30 +4797,67 @@ app.get('/api/backups', (req, res) => {
 
 // API-Endpunkt für das Löschen eines Backups
 app.post('/api/delete-backup', (req, res) => {
-  const { backupName } = req.body;
+    const { backupName } = req.body;
 
-  fs.unlink(path.join(BACKUP_DIR, backupName), (err) => {
-      if (err) {
-          console.error('Fehler beim Löschen des Backups:', err);
-          return res.status(500).json({ success: false, error: 'Fehler beim Löschen des Backups' });
-      }
-      console.log(`Backup gelöscht: ${backupName}`);
-      res.json({ success: true });
-  });
+    fs.unlink(path.join(BACKUP_DIR, backupName), (err) => {
+        if (err) {
+            console.error('Fehler beim Löschen des Backups:', err);
+            return res.status(500).json({ success: false, error: 'Fehler beim Löschen des Backups' });
+        }
+        console.log(`Backup gelöscht: ${backupName}`);
+        res.json({ success: true });
+    });
 });
 
+// API-Endpunkt zum Herunterladen eines Backups
+app.get('/api/download-backup/:backupName', (req, res) => {
+    const { backupName } = req.params;
+    const filePath = path.join(BACKUP_DIR, backupName);
 
+    // Überprüfen, ob die Datei existiert
+    if (fs.existsSync(filePath)) {
+        res.download(filePath, backupName, (err) => {
+            if (err) {
+                console.error('Fehler beim Herunterladen des Backups:', err);
+                res.status(500).json({ success: false, error: 'Fehler beim Herunterladen des Backups' });
+            }
+        });
+    } else {
+        res.status(404).json({ success: false, error: 'Backup nicht gefunden' });
+    }
+});
 
+// Funktion zur Überprüfung der Anzahl der Backups und ggf. Löschen älterer Backups
+function checkBackupCount() {
+    const maxBackupCount = 5; // Maximale Anzahl an Backups
 
+    fs.readdir(BACKUP_DIR, (err, files) => {
+        if (err) {
+            return console.error('Fehler beim Überprüfen der Backups:', err);
+        }
 
+        if (files.length > maxBackupCount) {
+            const sortedFiles = files
+                .map(file => ({
+                    name: file,
+                    time: fs.statSync(path.join(BACKUP_DIR, file)).mtime.getTime(),
+                }))
+                .sort((a, b) => a.time - b.time);
 
-
-
-
-
-
-
-
+            // Lösche die ältesten Backups, um die Anzahl zu reduzieren
+            const filesToDelete = sortedFiles.slice(0, files.length - maxBackupCount);
+            filesToDelete.forEach(file => {
+                fs.unlink(path.join(BACKUP_DIR, file.name), (err) => {
+                    if (err) {
+                        console.error('Fehler beim Löschen alter Backups:', err);
+                    } else {
+                        console.log(`Altes Backup gelöscht: ${file.name}`);
+                    }
+                });
+            });
+        }
+    });
+}
 
 app.post('/api/toggle-debug', (req, res) => {
   debugMode = req.body.debugMode;
@@ -4905,19 +4886,6 @@ app.post('/api/download-backup', (req, res) => {
         res.status(404).json({ success: false, error: 'Backup nicht gefunden' });
     }
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // API-Endpunkt zum Abrufen der Entwicklerberichte
 app.get('/api/dev-reports', (req, res) => {
