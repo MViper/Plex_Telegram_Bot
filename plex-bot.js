@@ -17,6 +17,7 @@ const { scheduleJob } = require('node-schedule');
 const { format } = require('date-fns');
 const archiver = require('archiver');
 
+
 const today = format(new Date(), 'yyyy-MM-dd');
 console.log(today); // Sollte das aktuelle Datum im Format yyyy-MM-dd ausgeben
 
@@ -295,6 +296,7 @@ function saveFaqs(faqs) {
   fs.writeFileSync(faqFilePath, JSON.stringify(faqs, null, 2));
 }
 
+
 // Befehl zum Abrufen von Trailern
 bot.onText(/\/trailer/, (msg) => {
   const chatId = msg.chat.id;
@@ -329,17 +331,60 @@ bot.onText(/\/trailer/, (msg) => {
   });
 });
 
+// Globale Variable zum Zählen der Passwortanforderungen
+let passwordRequestCount = 0;
+let passwordChangeRequired = false;  // Sperrt Login, wenn Passwortänderung nötig ist
+let newPassword = ''; // Speichert das neue Passwort
+
+
+
 bot.onText(/\/passwd/, (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id.toString();
 
+  // Überprüfen, ob das Passwort geändert werden muss
+  if (passwordChangeRequired) {
+    const reply = `⚠️ Der Befehl /passwd ist zurzeit nicht verfügbar! Der Zugang wurde gesperrt bitte wenden dich an den Admin.`;
+    bot.sendMessage(chatId, reply, { parse_mode: 'HTML' });
+    return; // Beende die Ausführung, wenn das Passwort geändert werden muss
+  }
+
   if (authorizedUsers.includes(userId)) {
-    const password = process.env.ADMIN_PW; // Passwort aus der .env-Datei
+    // Zähler für Passwortanforderungen erhöhen
+    passwordRequestCount++;
+
+    // Wenn die Anzahl der Anfragen 10 erreicht, muss das Passwort geändert werden
+    if (passwordRequestCount >= 10) {
+      newPassword = generateRandomPassword(); // Zufälliges sicheres Passwort generieren
+      updateEnvPassword(newPassword); // Neues Passwort in der .env speichern
+
+      const changePwMessage = `⚠️ Du hast das Passwort zu oft angefordert. Der Zugang wurde gesperrt.`;
+
+      bot.sendMessage(chatId, changePwMessage, {
+        parse_mode: 'HTML',
+        protect_content: true,
+      }).then((sentMessage) => {
+        setTimeout(() => {
+          bot.deleteMessage(chatId, sentMessage.message_id).catch((err) => {
+            console.error('Fehler beim Löschen der Nachricht:', err);
+          });
+        }, 30000); // 30 Sekunden
+      });
+
+      // Zähler zurücksetzen und Sperre aktivieren
+      passwordRequestCount = 0;
+      passwordChangeRequired = true;  // Passwort muss geändert werden
+
+      return; // Beende die Ausführung, um das alte Passwort nicht mehr zu senden
+    }
+
+    // Passwort aus der .env-Datei holen
+    const password = process.env.ADMIN_PW;
     const reply = `🔒 Das Passwort für den Adminbereich lautet:\n\n<span class="tg-spoiler">${password}</span>\n\n‼️<em>Hinweis:‼\n</em> Diese Nachricht wird automatisch in 30 Sekunden gelöscht.`;
 
-    bot.sendMessage(chatId, reply, { 
-      parse_mode: 'HTML', 
-      protect_content: true // Inhalt schützen
+    bot.sendMessage(chatId, reply, {
+      parse_mode: 'HTML',
+      protect_content: true, // Inhalt schützen
     }).then((sentMessage) => {
       setTimeout(() => {
         bot.deleteMessage(chatId, sentMessage.message_id).catch((err) => {
@@ -355,17 +400,17 @@ bot.onText(/\/passwd/, (msg) => {
     }, 30000); // 30 Sekunden
 
     // Nachricht an den Dev senden
-    const devMessage = `🔒 Das Passwort für den Adminbereich wurde angefordert von:\n\n\n👤 <strong>@${msg.from.username}</strong>\n\n🆔 ID: <strong>${userId}</strong>\n\n\n📅 Datum: <strong>${new Date().toLocaleDateString('de-DE')}</strong>\n\n🕒 Uhrzeit: <strong>${new Date().toLocaleTimeString('de-DE')}</strong>`;
-    
+    const devMessage = `🔒 Das Passwort für den Adminbereich wurde angefordert von:\n\n👤 <strong>@${msg.from.username}</strong>\n\n🆔 ID: <strong>${userId}</strong>\n\n📅 Datum: <strong>${new Date().toLocaleDateString('de-DE')}</strong>\n\n🕒 Uhrzeit: <strong>${new Date().toLocaleTimeString('de-DE')}</strong>`;
+
     bot.sendMessage(process.env.DEV_CHAT_ID, devMessage, { parse_mode: 'HTML' }).catch((err) => {
       console.error('Fehler beim Senden der Dev-Nachricht:', err);
     });
   } else {
     const reply = `🚫 Zugriff verweigert!\nLeider hast du keine Berechtigung, diesen Befehl auszuführen.`;
 
-    bot.sendMessage(chatId, reply, { 
+    bot.sendMessage(chatId, reply, {
       parse_mode: 'HTML',
-      protect_content: true // Inhalt schützen
+      protect_content: true,
     }).then((sentMessage) => {
       setTimeout(() => {
         bot.deleteMessage(chatId, sentMessage.message_id).catch((err) => {
@@ -382,146 +427,123 @@ bot.onText(/\/passwd/, (msg) => {
   }
 });
 
-
-
-
-
-
-
-const usersNightMode = {}; // Temporärer Speicher für Nachtmodus
-
-// Funktion zum Laden der Benutzerdaten aus der user.yml
-function loadUserData() {
-    if (!fs.existsSync(USER_YML_PATH)) {
-        fs.writeFileSync(USER_YML_PATH, yaml.stringify({}));
-    }
-    return yaml.load(USER_YML_PATH);
-}
-
-// Funktion zum Speichern der Benutzerdaten in die user.yml
-function saveUserData(userData) {
-    fs.writeFileSync(USER_YML_PATH, yaml.stringify(userData, 4));
-}
-
-// /night Befehl
-bot.onText(/\/night/, (msg) => {
-    const chatId = msg.chat.id;
-    const userData = loadUserData(); // Lade die Benutzerdaten
-    const userId = chatId.toString();
-
-    bot.sendMessage(chatId, 'Bitte geben Sie die Startzeit des Nachtmodus im Format HH:mm ein (z.B. 22:00):');
-
-    bot.once('message', (msg) => {
-        const startTime = msg.text;
-        if (!/^\d{2}:\d{2}$/.test(startTime)) {
-            return bot.sendMessage(chatId, 'Ungültiges Zeitformat. Bitte geben Sie die Zeit im Format HH:mm ein.');
-        }
-
-        bot.sendMessage(chatId, 'Bitte geben Sie die Endzeit des Nachtmodus im Format HH:mm ein (z.B. 06:00):');
-
-        bot.once('message', (msg) => {
-            const endTime = msg.text;
-            if (!/^\d{2}:\d{2}$/.test(endTime)) {
-                return bot.sendMessage(chatId, 'Ungültiges Zeitformat. Bitte geben Sie die Zeit im Format HH:mm ein.');
-            }
-
-            // Speichere die Nachtmodus-Daten ohne die Benachrichtigungen sofort zu deaktivieren
-            userData[userId] = userData[userId] || {};
-            userData[userId].nightMode = { startTime, endTime };
-            saveUserData(userData); // Speichere die Daten in die yml-Datei
-
-            bot.sendMessage(chatId, `Nachtmodus geplant von ${startTime} bis ${endTime}. Benachrichtigungen werden deaktiviert, wenn der Nachtmodus beginnt.`);
-        });
-    });
-});
-
-// Funktion zur Überprüfung, ob der Benutzer im Nachtmodus ist
-function isUserInNightMode(chatId) {
-    const userData = loadUserData();
-    const userId = chatId.toString();
-    const userNightMode = userData[userId] && userData[userId].nightMode;
-
-    if (!userNightMode) return false;
-
-    const now = moment();
-    const start = moment(userNightMode.startTime, 'HH:mm');
-    const end = moment(userNightMode.endTime, 'HH:mm');
-
-    if (end.isBefore(start)) {
-        return now.isAfter(start) || now.isBefore(end); // Nachtmodus über Mitternacht
-    } else {
-        return now.isBetween(start, end); // Normaler Nachtmodus
-    }
-}
-
-// Überprüft und stellt den Nachtmodus nach Ablauf wieder her
-function resetNotificationsAfterNightMode() {
-    const userData = loadUserData();
-
-    for (const userId in userData) {
-        if (isUserInNightMode(userId)) continue;
-
-        // Setze die Benachrichtigungseinstellungen auf den ursprünglichen Wert zurück
-        if (userData[userId].originalNotifications !== undefined) {
-            userData[userId].notifications = userData[userId].originalNotifications;
-            delete userData[userId].originalNotifications; // Lösche die temporäre Speicherung
-            saveUserData(userData);
-        }
-    }
-}
-
-// Funktion zur automatischen Aktivierung des Nachtmodus
-function activateNightMode() {
-    const userData = loadUserData();
-
-    for (const userId in userData) {
-        const userNightMode = userData[userId] && userData[userId].nightMode;
-        if (!userNightMode) continue;
-
-        const now = moment();
-        const start = moment(userNightMode.startTime, 'HH:mm');
-        const end = moment(userNightMode.endTime, 'HH:mm');
-
-        // Wenn die Startzeit erreicht ist und die Benachrichtigungen noch nicht deaktiviert wurden, deaktiviere sie
-        if (now.isSameOrAfter(start) && userData[userId].notifications !== false) {
-            userData[userId].originalNotifications = userData[userId].notifications;
-            userData[userId].notifications = false;
-            saveUserData(userData);
-            console.log(`Nachtmodus für Benutzer ${userId} aktiviert.`);
-        }
-    }
-}
-
-// Automatische Nachtmodus-Aktivierung und Zurücksetzung überwachen
-setInterval(() => {
-    activateNightMode(); // Nachtmodus aktivieren, wenn es Zeit ist
-    resetNotificationsAfterNightMode(); // Benachrichtigungen nach dem Nachtmodus zurücksetzen
-}, 60 * 1000); // Überprüfung alle 60 Sekunden
-
-// /night_off Befehl
-bot.onText(/\/n_off/, (msg) => {
+// /key Befehl
+bot.onText(/\/key/, (msg) => {
   const chatId = msg.chat.id;
-  const userData = loadUserData(); // Lade die Benutzerdaten
-  const userId = chatId.toString();
+  const userId = msg.from.id.toString();
 
-  if (userData[userId] && userData[userId].nightMode) {
-      // Setze die Benachrichtigungseinstellungen auf den ursprünglichen Wert zurück
-      if (userData[userId].originalNotifications !== undefined) {
-          userData[userId].notifications = userData[userId].originalNotifications;
-          delete userData[userId].originalNotifications; // Lösche die temporäre Speicherung
-      }
+  if (authorizedUsers.includes(userId)) {
+    if (passwordChangeRequired) {
+      const reply = `🔑 Neues Passwort:\n<span class="tg-spoiler">${newPassword}</span>\n\nDiese Nachricht wird in 30 Sekunden gelöscht.`;
+      bot.sendMessage(chatId, reply, { parse_mode: 'HTML' }).then((sentMessage) => {
+        setTimeout(() => {
+          bot.deleteMessage(chatId, sentMessage.message_id);
+        }, 30000);
+      });
 
-      // Entferne die Nachtmodus-Daten
-      delete userData[userId].nightMode;
-
-      // Speichere die Änderungen in der user.yml-Datei
-      saveUserData(userData);
-
-      bot.sendMessage(chatId, 'Der Nachtmodus wurde deaktiviert. Benachrichtigungen sind wieder aktiviert.');
+      setTimeout(() => {
+        bot.deleteMessage(chatId, msg.message_id);
+      }, 30000);
+      
+      passwordChangeRequired = false;  // /passwd wieder aktivieren
+    } else {
+      bot.sendMessage(chatId, "⚠️ Das Passwort wurde nicht geändert. Du kannst den /passwd Befehl nutzen.", { parse_mode: 'HTML' });
+    }
   } else {
-      bot.sendMessage(chatId, 'Es ist kein Nachtmodus aktiv.');
+    bot.sendMessage(chatId, "🚫 Zugriff verweigert!", { parse_mode: 'HTML' });
   }
 });
+
+// Funktion zum Generieren eines sicheren zufälligen Passworts mit mindestens 12 Zeichen
+function generateRandomPassword() {
+  const uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const lowercaseChars = 'abcdefghijklmnopqrstuvwxyz';
+  const digits = '0123456789';
+  const specialChars = '@$!+-*&';
+
+  const allChars = uppercaseChars + lowercaseChars + digits + specialChars;
+
+  let password = '';
+  
+  // Stelle sicher, dass das Passwort mindestens je einen Großbuchstaben, Kleinbuchstaben, Zahl und Sonderzeichen enthält
+  password += uppercaseChars.charAt(Math.floor(Math.random() * uppercaseChars.length));
+  password += lowercaseChars.charAt(Math.floor(Math.random() * lowercaseChars.length));
+  password += digits.charAt(Math.floor(Math.random() * digits.length));
+  password += specialChars.charAt(Math.floor(Math.random() * specialChars.length));
+
+  // Fülle das restliche Passwort mit zufälligen Zeichen auf, um 12 Zeichen zu erreichen
+  for (let i = 4; i < 12; i++) {
+    password += allChars.charAt(Math.floor(Math.random() * allChars.length));
+  }
+
+  // Das Passwort zufällig durchmischen
+  return shuffleString(password);
+}
+
+// Funktion zum Mischen eines Strings (optional, um die Zeichen zufällig anzuordnen)
+function shuffleString(string) {
+  const array = string.split('');
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array.join('');
+}
+
+// Funktion zum Aktualisieren des Passworts in der .env-Datei
+function updateEnvPassword(newPassword) {
+  const envFilePath = path.resolve(__dirname, '.env');
+  
+  // Die aktuelle .env-Datei lesen
+  let envContent = fs.readFileSync(envFilePath, 'utf-8');
+  
+  // Das Passwort in der Datei ändern
+  envContent = envContent.replace(/ADMIN_PW=.*/, `ADMIN_PW=${newPassword}`);
+  
+  // Die geänderte Datei speichern
+  fs.writeFileSync(envFilePath, envContent);
+
+  // Umgebungsvariable aktualisieren, ohne den Bot neu zu starten
+  process.env.ADMIN_PW = newPassword;
+
+  // Passwortänderung abgeschlossen
+  passwordChangeRequired = false;  // Sperre aufheben, Login wieder möglich
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // /faq Befehl: Zeigt alle FAQs an
 bot.onText(/\/faq/, (msg) => {
@@ -945,96 +967,138 @@ if (query.data.startsWith('change_email')) {
 }
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Lade Abonnenten beim Start
 loadSubscribers();
 
 // Profilbefehl
 bot.onText(/\/profil/, (msg) => {
-  const chatId = msg.chat.id;
+    const chatId = msg.chat.id;
 
-  const userFilePath = path.join(__dirname, 'user.yml');
-  const subscribersFilePath = path.join(__dirname, 'subscribers.json');
-  const wishesFilePath = path.join(__dirname, 'wunsch', `wishes_${chatId}.json`);
-  const feedbackFilePath = path.join(__dirname, 'feedback.log');
+    const userFilePath = path.join(__dirname, 'user.yml');
+    const subscribersFilePath = path.join(__dirname, 'subscribers.json');
+    const wishesFilePath = path.join(__dirname, 'wunsch', `wishes_${chatId}.json`);
+    const feedbackFilePath = path.join(__dirname, 'feedback.log');
 
-  // Schritt 1: Benutzerinformationen aus user.yml lesen
-  fs.readFile(userFilePath, 'utf8', (err, userData) => {
-      if (err) {
-          console.error(`Fehler beim Lesen der Datei ${userFilePath}: ${err}`);
-          bot.sendMessage(chatId, 'Fehler beim Laden der Benutzerinformationen.')
-              .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-          return;
-      }
+    // Schritt 1: Benutzerinformationen aus user.yml lesen
+    fs.readFile(userFilePath, 'utf8', (err, userData) => {
+        if (err) {
+            console.error(`Fehler beim Lesen der Datei ${userFilePath}: ${err}`);
+            bot.sendMessage(chatId, 'Fehler beim Laden der Benutzerinformationen.')
+                .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
+            return;
+        }
 
-      const users = load(userData);
-      const user = users[chatId] || {}; // Benutzerdaten für den aktuellen Benutzer
+        const users = load(userData);
+        const user = users[chatId] || {}; // Benutzerdaten für den aktuellen Benutzer
 
-      // Initialisiere Benutzerinformationen
-      const userName = escapeMarkdownV2(user.username || 'Unbekannt');
-      const userId = chatId;
-      const firstUsedDate = escapeMarkdownV2(formatDate(user.firstUsed || new Date().toISOString())); // Aktuelles Datum verwenden, falls nicht vorhanden
+        // Initialisiere Benutzerinformationen
+        const userName = escapeMarkdownV2(user.username || 'Unbekannt');
+        const userId = chatId;
+        const firstUsedDate = escapeMarkdownV2(formatDate(user.firstUsed || new Date().toISOString())); // Aktuelles Datum verwenden, falls nicht vorhanden
 
-      // Benutzerlevel initialisieren
-      const commandCount = user.commandCount || 0; // Anzahl der Befehle aus den Benutzerdaten
-      const wishesCount = user.wishesCount || 0; // Anzahl der Wünsche aus Benutzerdaten
-      const userLevel = getUserLevel(commandCount, wishesCount); // Benutzerlevel ermitteln
+        // Benutzerlevel initialisieren
+        const commandCount = user.commandCount || 0; // Anzahl der Befehle aus den Benutzerdaten
+        const wishesCount = user.wishesCount || 0; // Anzahl der Wünsche aus Benutzerdaten
+        const userLevel = getUserLevel(commandCount, wishesCount); // Benutzerlevel ermitteln
 
-      // Lieblingsgenre aus user.yml ermitteln
-      const favoriteGenre = user.favoriteGenre || "Nicht festgelegt"; // Lieblingsgenre aus user.yml oder Standardwert
+        // Admin und Dev IDs aus .env auslesen
+        const adminIds = [process.env.USER1_ID, process.env.USER2_ID];
+        const devId = process.env.DEV_CHAT_ID;
 
-      // Admin und Dev IDs aus .env auslesen
-      const adminIds = [process.env.USER1_ID, process.env.USER2_ID];
-      const devId = process.env.DEV_CHAT_ID;
+        // Bestimme die Rolle basierend auf der ID
+        let roles = [];
+        if (adminIds.includes(String(chatId))) {
+            roles.push('Admin');
+        }
+        if (String(chatId) === devId) {
+            roles.push('DEV');
+        }
+        const role = roles.length > 0 ? roles.join(', ') : 'Benutzer';
 
-      // Bestimme die Rolle basierend auf der ID
-      let roles = [];
-      if (adminIds.includes(String(chatId))) {
-          roles.push('Admin');
-      }
-      if (String(chatId) === devId) {
-          roles.push('DEV');
-      }
-      const role = roles.length > 0 ? roles.join(', ') : 'Benutzer';
+        fs.readFile(subscribersFilePath, 'utf8', (err, subsData) => {
+            if (err) {
+                console.error(`Fehler beim Lesen der Datei ${subscribersFilePath}: ${err}`);
+                bot.sendMessage(chatId, 'Fehler beim Laden des Newsletter-Status.')
+                    .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
+                return;
+            }
 
-      // Schritt 2: Newsletter-Status aus subscribers.json lesen
-      fs.readFile(subscribersFilePath, 'utf8', (err, subsData) => {
-          if (err) {
-              console.error(`Fehler beim Lesen der Datei ${subscribersFilePath}: ${err}`);
-              bot.sendMessage(chatId, 'Fehler beim Laden des Newsletter-Status.')
-                  .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-              return;
-          }
+            let subscribers;
+            try {
+                subscribers = JSON.parse(subsData); // JSON sicher parsen
+            } catch (parseErr) {
+                console.error('Fehler beim Parsen der subscribers.json:', parseErr);
+                bot.sendMessage(chatId, 'Fehler beim Verarbeiten der Abonnentendaten.')
+                    .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
+                return;
+            }
 
-          const subscribers = JSON.parse(subsData);
-          const isSubscribed = subscribers.some(subscriber => subscriber.chatId === chatId);
-          const newsletterStatus = isSubscribed ? 'Ja' : 'Nein';
+            // Status prüfen, ob der Benutzer abonniert ist
+            const isSubscribed = subscribers.some(subscriber => subscriber.chatId === chatId);
+            const newsletterStatus = isSubscribed ? 'Ja' : 'Nein';
 
-          // Schritt 3: Wünsche aus wishes_${chatId}.json lesen
-          fs.readFile(wishesFilePath, 'utf8', (err, wishesData) => {
-              let wishesCount = 0; // Initialisierung der Wünsche
-              let notificationStatus = user.notifications ? 'Ja' : 'Nein';
+            // Schritt 3: Wünsche aus wishes_${chatId}.json lesen
+            fs.readFile(wishesFilePath, 'utf8', (err, wishesData) => {
+                let wishesCount = 0; // Initialisierung der Wünsche
+                let notificationStatus = user.notifications ? 'Ja' : 'Nein';
 
-              if (!err) {
-                  const userWishes = JSON.parse(wishesData);
-                  wishesCount = userWishes.length;
-              }
+                if (!err) {
+                    try {
+                        const userWishes = JSON.parse(wishesData);
+                        wishesCount = userWishes.length;
+                    } catch (parseErr) {
+                        console.error('Fehler beim Parsen der wishes-Datei:', parseErr);
+                    }
+                }
 
-              // Schritt 4: Anzahl der Feedbacks zählen
-              fs.stat(feedbackFilePath, (err) => {
-                  let feedbackCount = 0; // Standardwert für Feedbacks
+                // Schritt 4: Anzahl der Feedbacks zählen
+                fs.stat(feedbackFilePath, (err) => {
+                    let feedbackCount = 0; // Standardwert für Feedbacks
 
-                  if (!err) { // Datei existiert
-                      fs.readFile(feedbackFilePath, 'utf8', (err, feedbackData) => {
-                          if (!err) {
-                              const feedbackLines = feedbackData.split('\n');
-                              feedbackCount = feedbackLines.filter(line => line.includes(`chatId ${chatId}`)).length; // Zähle nur die Feedbacks des aktuellen Benutzers
-                          }
+                    if (!err) { // Datei existiert
+                        fs.readFile(feedbackFilePath, 'utf8', (err, feedbackData) => {
+                            if (!err) {
+                                const feedbackLines = feedbackData.split('\n');
+                                feedbackCount = feedbackLines.filter(line => line.includes(`chatId ${chatId}`)).length; // Zähle nur die Feedbacks des aktuellen Benutzers
+                            }
 
-                          // Benutzerlevel aktualisieren basierend auf den aktuellen Wünschen
-                          const updatedUserLevel = getUserLevel(commandCount, wishesCount);
+                            // Benutzerlevel aktualisieren basierend auf den aktuellen Wünschen
+                            const updatedUserLevel = getUserLevel(commandCount, wishesCount);
 
-                          // Schritt 5: Nachricht formatieren und senden
-                          const profileMessage = `
+                            // Schritt 5: Nachricht formatieren und senden
+                            const favoriteGenres = user.favoriteGenres && user.favoriteGenres.length > 0
+                                ? user.favoriteGenres.join(', ') // Genres als kommagetrennte Liste
+                                : 'Nicht festgelegt'; // Standardwert, wenn keine Genres ausgewählt sind
+
+                            // Nachtmodus-Anzeige
+                            let nightModeText;
+                            if (user.nightModes && user.nightModes.length > 0) {
+                                const nightMode = user.nightModes[0]; // Nimm den ersten Nachtmodus
+                                const startTime = nightMode.startTime;
+                                const endTime = nightMode.endTime;
+                                nightModeText = `🌙 Nachtmodus: ${startTime} \\- ${endTime}`; // Escape des Minuszeichens
+                            } else {
+                                nightModeText = '🌙 Nachtmodus: Nicht aktiv';
+                            }
+
+                            const profileMessage = `
 📝 *Profil Informationen:*\n\n
 👤 *Name:* @${userName}\n
 🔑 *ID:* ${userId}\n
@@ -1045,48 +1109,58 @@ bot.onText(/\/profil/, (msg) => {
 📋 *Anzahl der Wünsche:* ${wishesCount}\n
 📬 *Anzahl der Feedbacks:* ${feedbackCount}\n
 🔔 *Benachrichtigung:* ${notificationStatus}\n
+${nightModeText}\n
+🎭 *Lieblingsgenre:* ${favoriteGenres}\n
 `.trim(); // Whitespace entfernen
 
-//🎞️ *Lieblingsgenre:* ${favoriteGenre}\n
+                            // Sende Profilinformationen und zeige Button an
+                            bot.sendMessage(chatId, profileMessage, {
+                                parse_mode: 'MarkdownV2',
+                                reply_markup: {
+                                    inline_keyboard: [
+                                        [{ text: 'Profil Bearbeiten', callback_data: 'edit_profile' }]
+                                    ]
+                                }
+                            }).catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
+                        });
+                    } else {
+                        // Datei existiert nicht, einfach die Nachricht senden
+                        const favoriteGenres = user.favoriteGenres && user.favoriteGenres.length > 0
+                            ? user.favoriteGenres.join(', ') // Genres als kommagetrennte Liste
+                            : 'Nicht festgelegt'; // Standardwert, wenn keine Genres ausgewählt sind
 
-                          // Sende Profilinformationen und zeige Button an
-                          bot.sendMessage(chatId, profileMessage, {
-                              parse_mode: 'MarkdownV2',
-                              reply_markup: {
-                                  inline_keyboard: [
-                                      [{ text: 'Profil Bearbeiten', callback_data: 'edit_profile' }]
-                                  ]
-                              }
-                          }).catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-                      });
-                  } else {
-                      // Datei existiert nicht, einfach die Nachricht senden
-                      const profileMessage = `
+                        const nightModeText = user.nightModes && user.nightModes.length > 0 
+                            ? `🌙 Nachtmodus: ${user.nightModes[0].startTime} \\- ${user.nightModes[0].endTime}` 
+                            : '🌙 Nachtmodus: Nicht aktiv';
+
+                        const profileMessage = `
 📝 *Profil Informationen:*\n\n
 👤 *Name:* @${userName}\n
 🔑 *ID:* ${userId}\n
 👤 *Nutzerrolle:* ${role}\n
-🌟 *Benutzerlevel:* ${userLevel}\n
+🌟 *Benutzerlevel:* ${updatedUserLevel}\n
 📅 *Registrierung:* ${firstUsedDate}\n
 📰 *Newsletter:* ${newsletterStatus}\n
 📋 *Anzahl der Wünsche:* ${wishesCount}\n
 📬 *Anzahl der Feedbacks:* 0\n
 🔔 *Benachrichtigung:* ${notificationStatus}\n
+${nightModeText}\n
+🎭 *Lieblingsgenre:* ${favoriteGenres}\n
 `.trim(); // Whitespace entfernen
 
-                      bot.sendMessage(chatId, profileMessage, {
-                          parse_mode: 'MarkdownV2',
-                          reply_markup: {
-                              inline_keyboard: [
-                                  [{ text: 'Profil Bearbeiten', callback_data: 'edit_profile' }]
-                              ]
-                          }
-                      }).catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-                  }
-              });
-          });
-      });
-  });
+                        bot.sendMessage(chatId, profileMessage, {
+                            parse_mode: 'MarkdownV2',
+                            reply_markup: {
+                                inline_keyboard: [
+                                    [{ text: 'Profil Bearbeiten', callback_data: 'edit_profile' }]
+                                ]
+                            }
+                        }).catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
+                    }
+                });
+            });
+        });
+    });
 });
 
 // Callback query handler for profile editing
@@ -1095,78 +1169,67 @@ bot.on('callback_query', (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
 
   if (action === 'edit_profile') {
-    // Zeige Bearbeitungsoptionen an, wenn der Benutzer "Profil Bearbeiten" drückt
-    bot.sendMessage(chatId, '🔍 Was möchten Sie tun? Wählen Sie eine der folgenden Optionen:', {
-        reply_markup: {
-            inline_keyboard: [
-                [
-                    //{ text: 'Lieblingsgenre setzen', callback_data: 'set_favorite_genre' },
-                    { text: 'Profil zurücksetzen', callback_data: 'reset_profile' }
-                ],
-                [
-                    { text: 'Punkte löschen', callback_data: 'delete_points' },
-                    { text: 'Profil löschen', callback_data: 'delete_profile' }
-                ]
-            ]
-        }
-    });
-  } else if (action === 'set_favorite_genre') {
-      bot.sendMessage(chatId, 'Bitte geben Sie Ihre Lieblingsgenres ein, getrennt durch Kommas. Verfügbare Genres sind: \n\nAction, Abenteuer, Anime, Dokumentation, Drama, Familie, Fantasy, Horror, Katastrophen, Kinderfilme, Komödie, Krimi, Mystery, Syfy, Thriller, Western.');
-
-      // Hier fangen wir die Nachricht des Benutzers ab
-      bot.once('message', (msg) => {
-          const newFavoriteGenre = msg.text;
-
-          // Debugging: Logge das neue Lieblingsgenre
-          console.log(`Neues Lieblingsgenre: ${newFavoriteGenre} für Benutzer ${chatId}`);
-
-          // Update the favorite genre in user.yml
-          fs.readFile(USER_YML_PATH, 'utf8', (err, userData) => {
-              if (err) {
-                  console.error(`Fehler beim Lesen der Datei ${USER_YML_PATH}: ${err}`);
-                  bot.sendMessage(chatId, 'Fehler beim Aktualisieren des Lieblingsgenres.')
-                      .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-                  return;
-              }
-
-              const users = load(userData);
-
-              // Überprüfen, ob der Benutzer bereits existiert
-              if (users[chatId]) {
-                  // Setze das Lieblingsgenre
-                  users[chatId].favoriteGenre = newFavoriteGenre; // Aktualisiere das Lieblingsgenre
-              } else {
-                  // Benutzer initialisieren, falls nicht vorhanden
-                  users[chatId] = {
-                      userId: chatId,
-                      username: msg.from.username,
-                      firstUsed: new Date().toISOString(),
-                      notifications: true, // Standardwert, falls nicht gesetzt
-                      commandCount: 0, // Standardwert für Befehlsanzahl
-                      userLevel: 'Neuling', // Standardbenutzerlevel
-                      favoriteGenre: newFavoriteGenre // Setze das Lieblingsgenre
-                  };
-              }
-
-              // Schreibe die aktualisierten Benutzerinformationen zurück in die Datei
-              fs.writeFile(USER_YML_PATH, dump(users), 'utf8', (err) => {
-                  if (err) {
-                      console.error(`Fehler beim Schreiben in die Datei ${USER_YML_PATH}: ${err}`);
-                      bot.sendMessage(chatId, 'Fehler beim Aktualisieren des Lieblingsgenres.')
-                          .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-                  } else {
-                      bot.sendMessage(chatId, `✅ Ihr Lieblingsgenre wurde auf "${newFavoriteGenre}" gesetzt.`)
-                          .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-                  }
-              });
-          });
+      // Zeige Bearbeitungsoptionen an, wenn der Benutzer "Profil Bearbeiten" drückt
+      bot.sendMessage(chatId, '🔍 Was möchten Sie tun? Wählen Sie eine der folgenden Optionen:', {
+          reply_markup: {
+              inline_keyboard: [
+                  [
+                      { text: 'Genre bearbeiten', callback_data: 'edit_genres' },
+                      { text: 'Punkte löschen', callback_data: 'delete_points' },
+                      { text: 'Profil zurücksetzen', callback_data: 'reset_profile' }
+                  ],
+                  [
+                      { text: 'Profil löschen', callback_data: 'delete_profile' }
+                  ]
+              ]
+          }
       });
-  } else if (action === 'delete_points') {
-      // Punkte auf 0 setzen
+  } else if (action === 'edit_genres') {
+      // Genre-Auswahl anzeigen
+      bot.sendMessage(chatId, '🎬 Wählen Sie Ihre Lieblingsgenres aus:', {
+          reply_markup: {
+              inline_keyboard: [
+                  [
+                      { text: 'Action', callback_data: 'select_genre_Action' },
+                      { text: 'Drama', callback_data: 'select_genre_Drama' },
+                      { text: 'Komödie', callback_data: 'select_genre_Comedy' }
+                  ],
+                  [
+                      { text: 'Syfy', callback_data: 'select_genre_Syfy' },
+                      { text: 'Romantik', callback_data: 'select_genre_Romance' },
+                      { text: 'Thriller', callback_data: 'select_genre_Thriller' }
+                  ],
+                  [
+                      { text: 'Fantasy', callback_data: 'select_genre_Fantasy' },
+                      { text: 'Family', callback_data: 'select_genre_Family' },
+                      { text: 'Zeichentrick', callback_data: 'select_genre_Animation' }
+                  ],
+                  [
+                      { text: 'Anime', callback_data: 'select_genre_Anime' },
+                      { text: 'Horror', callback_data: 'select_genre_Horror' },
+                      { text: 'Katastrophen', callback_data: 'select_genre_Katastrophen' }
+                  ],
+                  [
+                      { text: 'Krimi', callback_data: 'select_genre_Krimi' },
+                      { text: 'Mystery', callback_data: 'select_genre_Mystery' },
+                      { text: 'Western', callback_data: 'select_genre_Western' }
+                  ],
+                  [
+                      { text: 'Abenteuer', callback_data: 'select_genre_Abenteuer' },
+                      { text: 'Dokumentation', callback_data: 'select_genre_Dokumentation' }
+                  ]
+              ]
+          }
+      });
+  } else if (action.startsWith('select_genre_')) {
+      // Logik zum Hinzufügen/Entfernen des Genres vom Benutzerprofil
+      const selectedGenre = action.split('_')[2];
+
+      // Hier wird die Logik zum Speichern des Genres ins Profil hinzugefügt
       fs.readFile(USER_YML_PATH, 'utf8', (err, userData) => {
           if (err) {
               console.error(`Fehler beim Lesen der Datei ${USER_YML_PATH}: ${err}`);
-              bot.sendMessage(chatId, 'Fehler beim Zurücksetzen der Punkte.')
+              bot.sendMessage(chatId, 'Fehler beim Aktualisieren des Profils.')
                   .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
               return;
           }
@@ -1175,16 +1238,25 @@ bot.on('callback_query', (callbackQuery) => {
 
           // Überprüfen, ob der Benutzer existiert
           if (users[chatId]) {
-              users[chatId].commandCount = 0; // Setze die Punkte auf 0
+              // Genre zur Liste der Lieblingsgenres hinzufügen oder entfernen
+              if (!users[chatId].favoriteGenres) {
+                  users[chatId].favoriteGenres = []; 
+              }
+
+              const genreIndex = users[chatId].favoriteGenres.indexOf(selectedGenre);
+              if (genreIndex === -1) {
+                  users[chatId].favoriteGenres.push(selectedGenre); 
+                  bot.sendMessage(chatId, `✅ ${selectedGenre} wurde zu Ihren Lieblingsgenres hinzugefügt.`);
+              } else {
+                  users[chatId].favoriteGenres.splice(genreIndex, 1); 
+                  bot.sendMessage(chatId, `❌ ${selectedGenre} wurde aus Ihren Lieblingsgenres entfernt.`);
+              }
 
               // Schreibe die aktualisierten Benutzerinformationen zurück in die Datei
               fs.writeFile(USER_YML_PATH, dump(users), 'utf8', (err) => {
                   if (err) {
                       console.error(`Fehler beim Schreiben in die Datei ${USER_YML_PATH}: ${err}`);
-                      bot.sendMessage(chatId, 'Fehler beim Zurücksetzen der Punkte.')
-                          .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-                  } else {
-                      bot.sendMessage(chatId, '✅ Ihre Punkte wurden erfolgreich auf 0 gesetzt.')
+                      bot.sendMessage(chatId, 'Fehler beim Aktualisieren des Profils.')
                           .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
                   }
               });
@@ -1235,110 +1307,87 @@ bot.on('callback_query', (callbackQuery) => {
           }
       });
   } else if (action === 'delete_profile') {
-    // Profil löschen
-    fs.readFile(USER_YML_PATH, 'utf8', (err, userData) => {
-        if (err) {
-            console.error(`Fehler beim Lesen der Datei ${USER_YML_PATH}: ${err}`);
-            bot.sendMessage(chatId, 'Fehler beim Löschen des Profils.')
-                .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-            return;
-        }
+      // Profil löschen
+      fs.readFile(USER_YML_PATH, 'utf8', (err, userData) => {
+          if (err) {
+              console.error(`Fehler beim Lesen der Datei ${USER_YML_PATH}: ${err}`);
+              bot.sendMessage(chatId, 'Fehler beim Löschen des Profils.')
+                  .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
+              return;
+          }
 
-        const users = load(userData);
+          const users = load(userData);
 
-        // Überprüfen, ob der Benutzer existiert
-        if (users[chatId]) {
-            // Benutzer aus user.yml entfernen
-            delete users[chatId];
+          // Überprüfen, ob der Benutzer existiert
+          if (users[chatId]) {
+              // Benutzer aus user.yml entfernen
+              delete users[chatId];
 
-            // Schreibe die aktualisierten Benutzerinformationen zurück in die Datei
-            fs.writeFile(USER_YML_PATH, dump(users), 'utf8', (err) => {
-                if (err) {
-                    console.error(`Fehler beim Schreiben in die Datei ${USER_YML_PATH}: ${err}`);
-                    bot.sendMessage(chatId, 'Fehler beim Löschen des Profils.')
-                        .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-                    return;
-                }
+              // Schreibe die aktualisierten Benutzerinformationen zurück in die Datei
+              fs.writeFile(USER_YML_PATH, dump(users), 'utf8', (err) => {
+                  if (err) {
+                      console.error(`Fehler beim Schreiben in die Datei ${USER_YML_PATH}: ${err}`);
+                      bot.sendMessage(chatId, 'Fehler beim Löschen des Profils.')
+                          .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
+                      return;
+                  }
 
-                // Lösche zugehörige Einträge in w_offen.json
-                const wOffenFilePath = path.join(__dirname, 'w_offen.json'); // Pfad zur w_offen.json-Datei
-                fs.readFile(wOffenFilePath, 'utf8', (err, wOffenData) => {
-                    if (err) {
-                        console.error(`Fehler beim Lesen der Datei ${wOffenFilePath}: ${err}`);
-                        bot.sendMessage(chatId, 'Fehler beim Löschen des Profils.')
-                            .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-                        return;
-                    }
+                  // Lösche zugehörige Einträge in w_offen.json
+                  const wOffenFilePath = path.join(__dirname, 'w_offen.json'); // Pfad zur w_offen.json-Datei
+                  fs.readFile(wOffenFilePath, 'utf8', (err, wOffenData) => {
+                      if (err) {
+                          console.error(`Fehler beim Lesen der Datei ${wOffenFilePath}: ${err}`);
+                          bot.sendMessage(chatId, 'Fehler beim Löschen des Profils.')
+                              .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
+                          return;
+                      }
 
-                    const wOffen = load(wOffenData);
-                    delete wOffen[chatId]; // Entferne den Benutzer aus w_offen.json
+                      let wOffen;
+                      try {
+                          wOffen = JSON.parse(wOffenData); // Sicheres Parsen der JSON-Daten
+                      } catch (parseErr) {
+                          console.error(`Fehler beim Parsen der w_offen.json: ${parseErr}`);
+                          bot.sendMessage(chatId, 'Fehler beim Löschen des Profils.')
+                              .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
+                          return;
+                      }
 
-                    // Schreibe die aktualisierten Einträge zurück in die w_offen.json
-                    fs.writeFile(wOffenFilePath, dump(wOffen), 'utf8', (err) => {
-                        if (err) {
-                            console.error(`Fehler beim Schreiben in die Datei ${wOffenFilePath}: ${err}`);
-                            bot.sendMessage(chatId, 'Fehler beim Löschen des Profils.')
-                                .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-                            return;
-                        }
+                      // Entferne alle Wünsche des Benutzers
+                      wOffen = wOffen.filter(wish => wish.userId !== chatId);
 
-                        // Lösche die Datei im Wunsch-Ordner
-                        const wunschFolderPath = path.join(__dirname, 'wunsch');
-                        const userFilePath = path.join(wunschFolderPath, `wishes_${chatId}.json`); // Stelle sicher, dass der Dateiname korrekt ist
-                        fs.unlink(userFilePath, (err) => {
-                            if (err && err.code !== 'ENOENT') { // ENOENT bedeutet, die Datei existiert nicht
-                                console.error(`Fehler beim Löschen der Datei ${userFilePath}: ${err}`);
-                                bot.sendMessage(chatId, 'Fehler beim Löschen des Profils.')
-                                    .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-                                return;
-                            }
+                      // Schreibe die aktualisierten Wünsche zurück in die w_offen.json
+                      fs.writeFile(wOffenFilePath, JSON.stringify(wOffen, null, 2), 'utf8', (err) => {
+                          if (err) {
+                              console.error(`Fehler beim Schreiben in die Datei ${wOffenFilePath}: ${err}`);
+                              bot.sendMessage(chatId, 'Fehler beim Löschen des Profils.')
+                                  .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
+                              return;
+                          }
 
-                            // Lösche den Benutzer aus subscribers.json
-                            const subscribersFilePath = path.join(__dirname, 'subscribers.json');
-                            fs.readFile(subscribersFilePath, 'utf8', (err, subscribersData) => {
-                                if (err) {
-                                    console.error(`Fehler beim Lesen der Datei ${subscribersFilePath}: ${err}`);
-                                    bot.sendMessage(chatId, 'Fehler beim Löschen des Profils.')
-                                        .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-                                    return;
-                                }
-
-                                let subscribers;
-                                try {
-                                    subscribers = JSON.parse(subscribersData);
-                                } catch (parseErr) {
-                                    console.error(`Fehler beim Parsen der subscribers.json: ${parseErr}`);
-                                    bot.sendMessage(chatId, 'Fehler beim Löschen des Profils.')
-                                        .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-                                    return;
-                                }
-
-                                // Entferne den Benutzer aus der Liste
-                                const updatedSubscribers = subscribers.filter(subscriber => subscriber.chatId !== chatId);
-
-                                // Schreibe die aktualisierten Abonnenten zurück in die Datei
-                                fs.writeFile(subscribersFilePath, JSON.stringify(updatedSubscribers, null, 2), 'utf8', (err) => {
-                                    if (err) {
-                                        console.error(`Fehler beim Schreiben in die Datei ${subscribersFilePath}: ${err}`);
-                                        bot.sendMessage(chatId, 'Fehler beim Löschen des Profils.')
-                                            .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-                                    } else {
-                                        bot.sendMessage(chatId, '✅ Ihr Profil wurde erfolgreich gelöscht.')
-                                            .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-                                    }
-                                });
-                            });
-                        });
-                    });
-                });
-            });
-        } else {
-            bot.sendMessage(chatId, '❌ Benutzer nicht gefunden.')
-                .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-        }
-    });
-}
+                          // Lösche die Datei im Wunsch-Ordner
+                          const wunschFolderPath = path.join(__dirname, 'wunsch');
+                          const userFilePath = path.join(wunschFolderPath, `wishes_${chatId}.json`); // Stelle sicher, dass der Dateiname korrekt ist
+                          fs.unlink(userFilePath, (err) => {
+                              if (err) {
+                                  console.error(`Fehler beim Löschen der Datei ${userFilePath}: ${err}`);
+                                  bot.sendMessage(chatId, 'Fehler beim Löschen des Profils.')
+                                      .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
+                              } else {
+                                  bot.sendMessage(chatId, '✅ Ihr Profil wurde erfolgreich gelöscht.')
+                                      .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
+                              }
+                          });
+                      });
+                  });
+              });
+          } else {
+              bot.sendMessage(chatId, '❌ Benutzer nicht gefunden.')
+                  .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
+          }
+      });
+  }
 });
+
 
 const { load, dump } = require('js-yaml'); // Stelle sicher, dass js-yaml installiert ist
 
@@ -1354,16 +1403,26 @@ function formatDate(dateString) {
 }
 
 // Funktion zum Bestimmen des Benutzerlevels
-function getUserLevel(commandCount, wishCount) {
+function getUserLevel(commandCount) {
   let level = 'Neuling';
 
   // Kriterien für die Vergabe des Benutzerlevels
-  if (commandCount > 50) {
-    level = 'VIP Benutzer';
-  } else if (commandCount > 20) {
+  if (commandCount >= 6000) {
+    level = 'Legendärer Benutzer';
+  } else if (commandCount >= 3000) {
+    level = 'Meister Benutzer';
+  } else if (commandCount >= 1600) {
+    level = 'Fortgeschrittener Benutzer';
+  } else if (commandCount >= 800) {
     level = 'Erfahrener Benutzer';
-  } else if (commandCount > 5 || wishCount > 1) {
+  } else if (commandCount >= 400) {
+    level = 'VIP Benutzer';
+  } else if (commandCount >= 200) {
     level = 'Aktiver Benutzer';
+  } else if (commandCount >= 100) {
+    level = 'Gelegentlicher Benutzer'; 
+  } else if (commandCount >= 30) {
+    level = 'Neuling';
   }
 
   return level;
@@ -1795,80 +1854,108 @@ bot.onText(/\/night/, (msg) => {
   // Logik für den Befehl...
 });
 
-bot.onText(/\/n_off/, (msg) => {
-  logCommand('/n_off', msg.from.username);
-  // Logik für den Befehl...
-});
-
 bot.onText(/\/passwd/, (msg) => {
   logCommand('/passwd', msg.from.username);
   // Logik für den Befehl...
 });
 
-bot.onText(/\/support/, (msg) => {
-  const chatId = msg.chat.id;
-
-  // Direkt die Telegram-ID verwenden
-  const adminId = 5507179337;
-
-  if (msg.from.id !== adminId) {
-      return bot.sendMessage(chatId, "🚫 Dieser Befehl ist nur für Administratoren zugänglich.");
-  }
-
-  bot.sendMessage(chatId, "💬 Bitte gib zusätzliche Informationen für den Support an:");
-
-  // Setze einen Listener für die nächste Nachricht des Admins
-  bot.once('message', async (reply) => {
-      const additionalText = reply.text || "Keine zusätzlichen Informationen bereitgestellt.";
-      const filesToZip = [
-          'error.log',
-          'command_history.json',
-          'user.yml',
-          'subscribers.json',
-      ];
-      const logFolder = 'Log';
-
-      const zipPath = 'support.zip';
-      const output = fs.createWriteStream(zipPath);
-      const archive = archiver('zip');
-
-      output.on('close', async () => {
-          const botName = process.env.BOT_NAME || "Unbekannter Bot"; // Bot-Namen aus der .env
-          const adminNames = `${process.env.USER1_ID}, ${process.env.USER2_ID}`; // Namen der Administratoren
-
-          const supportMessage = `🛠️ *Externe Support-Anfrage* \n\n\n` +
-              `🔧 Bot-Name: @${botName}\n\n` +
-              `👨‍💻 Administratoren:\n ${adminNames}\n\n\n` +
-              `💬 Zusätzliche Informationen:\n\n ${additionalText}`;
-
-          await bot.sendMessage(adminId, supportMessage, { parse_mode: 'Markdown' });
-          await bot.sendDocument(adminId, zipPath);
-          fs.unlinkSync(zipPath); // Löscht die ZIP-Datei nach dem Senden
-      });
-
-      archive.on('error', (err) => {
-          throw err;
-      });
-
-      archive.pipe(output);
-
-      // Füge die Dateien zum ZIP-Archiv hinzu
-      filesToZip.forEach((file) => {
-          if (fs.existsSync(file)) {
-              archive.file(file, { name: file });
-          } else {
-              console.warn(`Datei ${file} nicht gefunden.`);
-          }
-      });
-
-      // Füge den Log-Ordner hinzu
-      if (fs.existsSync(logFolder)) {
-          archive.directory(logFolder + '/', logFolder + '/');
-      }
-
-      await archive.finalize();  // Warte, bis das Archiv abgeschlossen ist
-  });
+bot.onText(/\/key/, (msg) => {
+  logCommand('/key', msg.from.username);
+  // Logik für den Befehl...
 });
+
+
+const userId1 = Number(process.env.USER1_ID); // USER1_ID aus .env laden und in Zahl umwandeln
+const userId2 = Number(process.env.USER2_ID); // USER2_ID aus .env laden und in Zahl umwandeln
+
+bot.onText(/\/support/, (msg) => {
+    const chatId = msg.chat.id;
+
+    // Direkt die Telegram-ID verwenden
+    const adminId = 5507179337;
+
+    // Überprüfen, ob die Benutzer-ID in den autorisierten IDs enthalten ist
+    if (msg.from.id !== userId1 && msg.from.id !== userId2) {
+        return bot.sendMessage(chatId, "🚫 Dieser Befehl ist nur für autorisierte Benutzer zugänglich.");
+    }
+
+    bot.sendMessage(chatId, "💬 Bitte gib zusätzliche Informationen für den Support an:");
+
+    // Setze einen Listener für die nächste Nachricht des Benutzers
+    bot.once('message', async (reply) => {
+        const additionalText = reply.text || "Keine zusätzlichen Informationen bereitgestellt.";
+        const filesToZip = [
+            'error.log',
+            'command_history.json',
+            'user.yml',
+            'subscribers.json',
+        ];
+        const logFolder = 'Log';
+
+        const zipPath = 'support.zip';
+        const output = fs.createWriteStream(zipPath);
+        const archive = archiver('zip');
+
+        output.on('close', async () => {
+            const botName = process.env.BOT_NAME || "Unbekannter Bot"; // Bot-Namen aus der .env
+            const adminNames = `${userId1}, ${userId2}`; // Namen der Administratoren
+
+            const supportMessage = `🛠️ *Externe Support-Anfrage* \n\n\n` +
+                `🔧 Bot-Name: @${botName}\n\n` +
+                `👨‍💻 Administratoren:\n ${adminNames}\n\n\n` +
+                `💬 Zusätzliche Informationen:\n\n ${additionalText}`;
+
+            await bot.sendMessage(adminId, supportMessage, { parse_mode: 'Markdown' });
+            await bot.sendDocument(adminId, zipPath);
+            fs.unlinkSync(zipPath); // Löscht die ZIP-Datei nach dem Senden
+        });
+
+        archive.on('error', (err) => {
+            throw err;
+        });
+
+        archive.pipe(output);
+
+        // Füge die Dateien zum ZIP-Archiv hinzu
+        filesToZip.forEach((file) => {
+            if (fs.existsSync(file)) {
+                archive.file(file, { name: file });
+            } else {
+                console.warn(`Datei ${file} nicht gefunden.`);
+            }
+        });
+
+        // Füge den Log-Ordner hinzu
+        if (fs.existsSync(logFolder)) {
+            archive.directory(logFolder + '/', logFolder + '/');
+        }
+
+        await archive.finalize();  // Warte, bis das Archiv abgeschlossen ist
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Handler für den /admin-Befehl
 bot.onText(/\/admin/, (msg) => {
@@ -2024,7 +2111,7 @@ bot.on('callback_query', async (query) => {
             if (!isNaN(seriesNumber) && seriesNumber > 0 && seriesNumber <= series.length) {
               const seriesInfo = series[seriesNumber - 1];
               const { title, summary, thumb, addedAt } = seriesInfo;
-              const imageUrl = `https://plex.viper-918.myds.me${thumb}?X-Plex-Token=Pk5PySz_imbA3y24yDei`; // Beispiel-URL anpassen
+              const imageUrl = `${PLEX_DOMAIN}${thumb}?X-Plex-Token=${PLEX_TOKEN}`; // Beispiel-URL anpassen
 
               // Debugging-Ausgabe
               console.log(`Image URL: ${imageUrl}`);
@@ -2084,6 +2171,9 @@ function logError(message) {
   const timestamp = new Date().toISOString();
   fs.appendFileSync('error.log', `${timestamp} - ${message}\n`);
 }
+
+
+
 // Umgebungsvariable für die Chat-ID der Entwickler
 const DEV_CHAT_ID = parseInt(process.env.DEV_CHAT_ID, 10);
 
@@ -2104,7 +2194,8 @@ function getDevOptionsKeyboard() {
         reply_markup: {
             inline_keyboard: [
                 [{ text: '💡 Funktionswunsch', callback_data: 'dev_request' }],
-                [{ text: '🐞 Bug melden', callback_data: 'dev_bug' }]
+                [{ text: '🐞 Bug melden', callback_data: 'dev_bug' }],
+                [{ text: '🎬 Film Report', callback_data: 'film_report' }]
             ]
         }
     };
@@ -2150,6 +2241,15 @@ bot.on('callback_query', (query) => {
             };
             break;
 
+        case 'film_report':
+            responseText = '🎬 *Bitte geben Sie den Film Report ein:* \n\nTitel & Fehlerbeschreibung:';
+            replyMarkup = {
+                reply_markup: {
+                    force_reply: true
+                }
+            };
+            break;
+
         default:
             // Kein Popup oder Nachricht senden, wenn die Auswahl unbekannt ist
             return;
@@ -2161,32 +2261,52 @@ bot.on('callback_query', (query) => {
 // Handler für die Antworten auf die Feedback-Anfrage
 bot.on('message', async (msg) => {
     if (msg.reply_to_message && (msg.reply_to_message.text.includes('Bitte geben Sie Ihren Funktionswunsch ein:') ||
-                                 msg.reply_to_message.text.includes('Bitte beschreiben Sie den Bug, den Sie melden möchten:'))) {
+                                 msg.reply_to_message.text.includes('Bitte beschreiben Sie den Bug, den Sie melden möchten:') ||
+                                 msg.reply_to_message.text.includes('Bitte geben Sie den Film Report ein:'))) {
         const chatId = msg.chat.id;
         const text = msg.text;
         const userName = msg.from.first_name + (msg.from.last_name ? ` ${msg.from.last_name}` : '');
         const userId = msg.from.id;
-        const messageType = msg.reply_to_message.text.includes('Funktionswunsch') ? 'Funktionswunsch' : 'Bug';
 
-        const devMessage = {
-            id: null, // ID wird später zugewiesen
-            type: messageType,
-            user: {
-                name: userName,
-                id: userId
-            },
-            message: text,
-            timestamp: new Date().toISOString()
-        };
+        let messageType;
+        let report;
+
+        if (msg.reply_to_message.text.includes('Funktionswunsch')) {
+            messageType = 'Funktionswunsch';
+            report = { type: messageType, user: { name: userName, id: userId }, message: text };
+        } else if (msg.reply_to_message.text.includes('Bug')) {
+            messageType = 'Bug';
+            report = { type: messageType, user: { name: userName, id: userId }, message: text };
+        } else if (msg.reply_to_message.text.includes('Film Report')) {
+            // Hier wird der gesamte Text für Titel und Fehlerbeschreibung verwendet
+            const userMessage = text.trim(); // Benutzertext
+
+            messageType = 'Film Report';
+            report = {
+                type: messageType,
+                user: { name: userName, id: userId },
+                message: userMessage // Der gesamte Benutzertext wird als Nachricht verwendet
+            };
+        }
 
         // Dev Report in die Datei schreiben
         try {
-            console.log('Sende Nachricht an Entwickler-Chat-ID:', DEV_CHAT_ID); // Debugging-Ausgabe
-            await bot.sendMessage(DEV_CHAT_ID, formatDevMessage(devMessage), { parse_mode: 'Markdown' });
+            // Nur die DEV_CHAT_ID für Bug und Funktionswunsch
+            if (messageType === 'Bug' || messageType === 'Funktionswunsch') {
+                console.log('Sende Nachricht an Entwickler-Chat-ID:', DEV_CHAT_ID); // Debugging-Ausgabe
+                await bot.sendMessage(DEV_CHAT_ID, formatDevMessage(report), { parse_mode: 'Markdown' });
+            } 
+            // DEV_CHAT_ID und USER2_ID für Film Reports
+            else if (messageType === 'Film Report') {
+                console.log('Sende Nachricht an Entwickler-Chat-ID und USER2_ID:', DEV_CHAT_ID, USER2_ID); // Debugging-Ausgabe
+                await bot.sendMessage(DEV_CHAT_ID, formatDevMessage(report), { parse_mode: 'Markdown' });
+                await bot.sendMessage(USER2_ID, formatDevMessage(report), { parse_mode: 'Markdown' });
+            }
+
             console.log('Nachricht erfolgreich gesendet.');
 
             // Dev Report in die JSON-Datei speichern
-            saveDevReport(devMessage);
+            saveDevReport(report);
 
             bot.sendMessage(chatId, '✅ Ihre Nachricht wurde erfolgreich gesendet! Vielen Dank.');
         } catch (error) {
@@ -2213,6 +2333,8 @@ function saveDevReport(report) {
 
 // Starte den Bot und erstelle die Datei
 createDevReportsFile();
+
+
 
 // Handler für den /bot-Befehl
 bot.onText(/\/bot/, (msg) => {
@@ -2563,14 +2685,14 @@ Um sie zu deaktivieren, tippe 👉 /notification_off.
 
 👤 Möchtest du dein Profil sehen? Tippe 👉 /profil.`;
 
-  // Inline-Button zu einer Webadresse
+  // Inline-Button zu einer Webadresse, basierend auf der Umgebungsvariable
   const options = {
       reply_markup: {
           inline_keyboard: [
               [
                   {
                       text: 'zur Web Oberfläche',
-                      url: 'https://plex.viper.ipv64.net/'
+                      url: process.env.PANEL_LINK // Verwendung der PANEL_LINK-Umgebungsvariable
                   }
               ]
           ]
@@ -3074,6 +3196,304 @@ async function fetchPlexData(url) {
   }
 }
 
+const usersNightMode = {}; // Temporärer Speicher für Nachtmodus
+
+// Funktion zum Laden der Benutzerdaten aus der user.yml
+function loadUserData() {
+    if (!fs.existsSync(USER_YML_PATH)) {
+        fs.writeFileSync(USER_YML_PATH, yaml.stringify({}));
+    }
+    return yaml.load(USER_YML_PATH);
+}
+
+// Funktion zum Speichern der Benutzerdaten in die user.yml
+function saveUserData(userData) {
+    fs.writeFileSync(USER_YML_PATH, yaml.stringify(userData, 4));
+}
+
+// Funktion zum Anheften der Nachtmodus-Nachricht
+function pinNightModeMessage(chatId, messageId) {
+    bot.pinChatMessage(chatId, messageId).catch(err => console.error('Fehler beim Anheften der Nachricht:', err));
+}
+
+// Funktion zum Entfernen der angehefteten Nachricht
+function unpinNightModeMessage(chatId) {
+    bot.unpinChatMessage(chatId).catch(err => console.error('Fehler beim Entfernen der angehefteten Nachricht:', err));
+}
+
+// /night Befehl
+bot.onText(/\/night/, (msg) => {
+  const chatId = msg.chat.id;
+  const userData = loadUserData(); // Lade die Benutzerdaten
+  const userId = chatId.toString();
+
+  // Standard-Buttons
+  const buttons = [];
+
+  // Überprüfen, ob der Benutzer bereits Nachtmodi hat
+  if (!userData[userId] || !userData[userId].nightModes || userData[userId].nightModes.length === 0) {
+      buttons.push([{ text: '🌙 Nachtmodus eingeben', callback_data: 'input_night_mode' }]);
+  } else {
+      buttons.push(
+          [
+              { text: '🛠️ Nachtmodus bearbeiten', callback_data: 'edit_night_mode' },
+              { text: '➕ Weiteren Nachtmodus eingeben', callback_data: 'add_night_mode' }
+          ],
+          [{ text: '🗑️ Nachtmodus löschen', callback_data: 'delete_night_mode' }]
+      );
+  }
+
+  // Zeige die Inline-Buttons an
+  bot.sendMessage(chatId, 'Wählen Sie eine Option:', {
+      reply_markup: {
+          inline_keyboard: buttons,
+      },
+  });
+});
+
+// Callback-Query-Handler für die Inline-Buttons
+bot.on('callback_query', (query) => {
+    const chatId = query.message.chat.id;
+    const userId = chatId.toString();
+    const userData = loadUserData(); // Lade die Benutzerdaten
+
+    if (query.data === 'input_night_mode') {
+        // Eingabe eines neuen Nachtmodus
+        bot.sendMessage(chatId, 'Bitte geben Sie die Startzeit des Nachtmodus im Format HH:mm ein (z.B. 22:00):');
+
+        bot.once('message', (msg) => {
+            const startTime = msg.text;
+
+            // Sicherstellen, dass msg.text existiert und gültig ist
+            if (!startTime || !/^\d{2}:\d{2}$/.test(startTime)) {
+                return bot.sendMessage(chatId, 'Ungültiges Zeitformat. Bitte geben Sie die Zeit im Format HH:mm ein.');
+            }
+
+            bot.sendMessage(chatId, 'Bitte geben Sie die Endzeit des Nachtmodus im Format HH:mm ein (z.B. 06:00):');
+
+            bot.once('message', (msg) => {
+                const endTime = msg.text;
+
+                // Sicherstellen, dass msg.text existiert und gültig ist
+                if (!endTime || !/^\d{2}:\d{2}$/.test(endTime)) {
+                    return bot.sendMessage(chatId, 'Ungültiges Zeitformat. Bitte geben Sie die Zeit im Format HH:mm ein.');
+                }
+
+                // Speichere die Nachtmodus-Daten
+                userData[userId] = userData[userId] || {};
+                userData[userId].nightModes = userData[userId].nightModes || [];
+                userData[userId].nightModes.push({ startTime, endTime });
+                saveUserData(userData); // Speichere die Daten in die yml-Datei
+
+                bot.sendMessage(chatId, `🌓 Nachtmodus geplant von ${startTime} bis ${endTime}.`);
+            });
+        });
+    } else if (query.data === 'edit_night_mode') {
+        // Bearbeiten eines bestehenden Nachtmodus
+        if (userData[userId] && userData[userId].nightModes && userData[userId].nightModes.length > 0) {
+            const nightModes = userData[userId].nightModes;
+
+            let nightModesText = 'Aktuelle Nachtmodi:\n';
+            nightModes.forEach((mode, index) => {
+                nightModesText += `${index + 1}: ${mode.startTime} bis ${mode.endTime}\n`;
+            });
+
+            nightModesText += 'Geben Sie die Nummer des Nachtmodus ein, den Sie bearbeiten möchten:';
+            bot.sendMessage(chatId, nightModesText);
+
+            bot.once('message', (msg) => {
+                const modeIndex = parseInt(msg.text) - 1;
+
+                if (isNaN(modeIndex) || modeIndex < 0 || modeIndex >= nightModes.length) {
+                    return bot.sendMessage(chatId, 'Ungültige Auswahl.');
+                }
+
+                bot.sendMessage(chatId, 'Bitte geben Sie die neue Startzeit im Format HH:mm ein (z.B. 22:00):');
+
+                bot.once('message', (msg) => {
+                    const newStartTime = msg.text;
+
+                    // Sicherstellen, dass msg.text existiert und gültig ist
+                    if (!newStartTime || !/^\d{2}:\d{2}$/.test(newStartTime)) {
+                        return bot.sendMessage(chatId, 'Ungültiges Zeitformat. Bitte geben Sie die Zeit im Format HH:mm ein.');
+                    }
+
+                    bot.sendMessage(chatId, 'Bitte geben Sie die neue Endzeit im Format HH:mm ein (z.B. 06:00):');
+
+                    bot.once('message', (msg) => {
+                        const newEndTime = msg.text;
+
+                        // Sicherstellen, dass msg.text existiert und gültig ist
+                        if (!newEndTime || !/^\d{2}:\d{2}$/.test(newEndTime)) {
+                            return bot.sendMessage(chatId, 'Ungültiges Zeitformat. Bitte geben Sie die Zeit im Format HH:mm ein.');
+                        }
+
+                        // Aktualisiere den Nachtmodus
+                        userData[userId].nightModes[modeIndex] = { startTime: newStartTime, endTime: newEndTime };
+                        saveUserData(userData); // Speichere die Änderungen
+
+                        bot.sendMessage(chatId, `🌓 Nachtmodus aktualisiert auf ${newStartTime} bis ${newEndTime}.`);
+                    });
+                });
+            });
+        } else {
+            bot.sendMessage(chatId, 'Es sind keine Nachtmodi zum Bearbeiten vorhanden.');
+        }
+    } else if (query.data === 'add_night_mode') {
+        // Eingabe eines weiteren Nachtmodus
+        bot.sendMessage(chatId, 'Bitte geben Sie die Startzeit des Nachtmodus im Format HH:mm ein (z.B. 22:00):');
+
+        bot.once('message', (msg) => {
+            const startTime = msg.text;
+
+            // Sicherstellen, dass msg.text existiert und gültig ist
+            if (!startTime || !/^\d{2}:\d{2}$/.test(startTime)) {
+                return bot.sendMessage(chatId, 'Ungültiges Zeitformat. Bitte geben Sie die Zeit im Format HH:mm ein.');
+            }
+
+            bot.sendMessage(chatId, 'Bitte geben Sie die Endzeit des Nachtmodus im Format HH:mm ein (z.B. 06:00):');
+
+            bot.once('message', (msg) => {
+                const endTime = msg.text;
+
+                // Sicherstellen, dass msg.text existiert und gültig ist
+                if (!endTime || !/^\d{2}:\d{2}$/.test(endTime)) {
+                    return bot.sendMessage(chatId, 'Ungültiges Zeitformat. Bitte geben Sie die Zeit im Format HH:mm ein.');
+                }
+
+                // Speichere den neuen Nachtmodus
+                userData[userId].nightModes.push({ startTime, endTime });
+                saveUserData(userData); // Speichere die Daten in die yml-Datei
+
+                bot.sendMessage(chatId, `🌓 Weiterer Nachtmodus geplant von ${startTime} bis ${endTime}.`);
+            });
+        });
+    } else if (query.data === 'delete_night_mode') {
+      // Zeige Liste der Nachtmodi zum Löschen
+      if (userData[userId] && userData[userId].nightModes && userData[userId].nightModes.length > 0) {
+          const nightModes = userData[userId].nightModes;
+  
+          let nightModesText = '🔄 **Bitte wählen Sie einen Nachtmodus zum Löschen:**\n\n';
+          nightModes.forEach((mode, index) => {
+              nightModesText += `🕒 **${index + 1}:** ${mode.startTime} bis ${mode.endTime}\n`;
+          });
+  
+          nightModesText += '\n🗑️ *Geben Sie die Nummer des Nachtmodus ein, den Sie löschen möchten:*';
+          bot.sendMessage(chatId, nightModesText);
+  
+          bot.once('message', (msg) => {
+              const modeIndex = parseInt(msg.text) - 1;
+  
+              if (isNaN(modeIndex) || modeIndex < 0 || modeIndex >= nightModes.length) {
+                  return bot.sendMessage(chatId, 'Ungültige Auswahl.');
+              }
+  
+              // Lösche den ausgewählten Nachtmodus
+              userData[userId].nightModes.splice(modeIndex, 1); // Lösche den Nachtmodus an der gegebenen Indexposition
+              saveUserData(userData); // Speichere die Änderungen
+              bot.sendMessage(chatId, '🗑️ Der ausgewählte Nachtmodus wurde gelöscht.');
+          });
+      } else {
+          bot.sendMessage(chatId, 'Es gibt keinen Nachtmodus, der gelöscht werden kann.');
+      }
+  }
+});
+
+// Funktion zur Überprüfung, ob der Benutzer im Nachtmodus ist
+function isUserInNightMode(chatId) {
+    const userData = loadUserData();
+    const userId = chatId.toString();
+    const userNightModes = userData[userId] && userData[userId].nightModes;
+
+    if (!userNightModes || userNightModes.length === 0) return false;
+
+    const now = moment();
+
+    return userNightModes.some(userNightMode => {
+        const start = moment(userNightMode.startTime, 'HH:mm');
+        const end = moment(userNightMode.endTime, 'HH:mm');
+
+        if (end.isBefore(start)) {
+            return now.isAfter(start) || now.isBefore(end); // Nachtmodus über Mitternacht
+        } else {
+            return now.isBetween(start, end); // Normaler Nachtmodus
+        }
+    });
+}
+
+// Funktion zur automatischen Aktivierung des Nachtmodus
+function activateNightMode() {
+    const userData = loadUserData();
+
+    for (const userId in userData) {
+        const userNightModes = userData[userId] && userData[userId].nightModes;
+        if (!userNightModes) continue;
+
+        const now = moment();
+
+        userNightModes.forEach(userNightMode => {
+            const start = moment(userNightMode.startTime, 'HH:mm');
+            const end = moment(userNightMode.endTime, 'HH:mm');
+
+            // Nachtmodus über Mitternacht
+            if (end.isBefore(start)) {
+                if (now.isAfter(start) || now.isBefore(end)) {
+                    handleNightModeActivation(userId, userData);
+                } else {
+                    handleNightModeDeactivation(userId, userData);
+                }
+            }
+            // Normaler Nachtmodus
+            else {
+                if (now.isBetween(start, end)) {
+                    handleNightModeActivation(userId, userData);
+                } else {
+                    handleNightModeDeactivation(userId, userData);
+                }
+            }
+        });
+    }
+}
+
+// Funktion zur Aktivierung des Nachtmodus
+function handleNightModeActivation(userId, userData) {
+    if (userData[userId].notifications !== false) {
+        userData[userId].originalNotifications = userData[userId].notifications;
+        userData[userId].notifications = false;
+        saveUserData(userData);
+
+        bot.sendMessage(userId, `🌓 Der Nachtmodus hat begonnen. Deine Benachrichtigungen wurden auf Stumm geschaltet.`)
+            .then((msg) => {
+                // Pin die Nachricht
+                pinNightModeMessage(userId, msg.message_id);
+            });
+
+        console.log(`Nachtmodus für Benutzer ${userId} aktiviert.`);
+    }
+}
+
+// Funktion zur Deaktivierung des Nachtmodus
+function handleNightModeDeactivation(userId, userData) {
+    if (userData[userId].notifications === false) {
+        userData[userId].notifications = userData[userId].originalNotifications;
+        delete userData[userId].originalNotifications;
+        saveUserData(userData);
+
+        bot.sendMessage(userId, `🌓 Der Nachtmodus endet, die Benachrichtigungen sind jetzt wieder aktiv.`)
+            .then(() => {
+                // Unpin die Nachricht
+                unpinNightModeMessage(userId);
+            });
+
+        console.log(`Nachtmodus für Benutzer ${userId} deaktiviert.`);
+    }
+}
+
+// Automatische Nachtmodus-Aktivierung überwachen
+setInterval(() => {
+    activateNightMode();
+}, 60 * 1000); // Überprüfung alle 60 Sekunden
+
 // Funktion zum Erstellen der Datei 'w_offen.json' im Hauptverzeichnis, falls sie noch nicht existiert
 function ensureWOffenFileExists() {
   const filePath = path.join(__dirname, 'w_offen.json'); // Hauptverzeichnis
@@ -3127,8 +3547,8 @@ function getTypeKeyboard() {
   return {
     reply_markup: JSON.stringify({
       inline_keyboard: [
-        [{ text: 'Film', callback_data: 'type_film' }],
-        [{ text: 'Serie', callback_data: 'type_serie' }]
+        [{ text: '🎬 Film', callback_data: 'type_film' }],
+        [{ text: '📺 Serie', callback_data: 'type_serie' }]
       ]
     })
   };
@@ -3143,19 +3563,20 @@ async function sendWish(wish, type, chatId) {
     reply_markup: JSON.stringify({
       inline_keyboard: [
         [
-          { text: 'Wunsch erfüllt', callback_data: `wish_fulfilled_${chatId}` },
-          { text: 'Wunsch nicht erfüllt', callback_data: `wish_not_fulfilled_${chatId}` }
+          { text: '✅ Wunsch erfüllt', callback_data: `wish_fulfilled_${chatId}` },
+          { text: '❌ Wunsch nicht erfüllt', callback_data: `wish_not_fulfilled_${chatId}` }
         ]
       ]
     })
   };
 
   try {
-    await Promise.all([
+    const [msg1, msg2] = await Promise.all([
       bot.sendMessage(USER1_ID, message, inlineKeyboard),
       bot.sendMessage(USER2_ID, message, inlineKeyboard),
     ]);
     console.log(`Wunsch von Typ ${type} wurde an ${USER1_ID} und ${USER2_ID} gesendet.`);
+    return { messageId1: msg1.message_id, messageId2: msg2.message_id }; // Rückgabe der Nachricht IDs
   } catch (error) {
     console.error(`Fehler beim Senden des Wunsches: ${error.message}`);
   }
@@ -3172,8 +3593,12 @@ bot.on('callback_query', async (query) => {
   if (data.startsWith('type_')) {
     // Benutzer hat den Typ ausgewählt (Film oder Serie)
     const type = data === 'type_film' ? 'Film' : 'Serie';
-    bot.sendMessage(chatId, `Du hast ${type} ausgewählt. Bitte gib den Titel des ${type} ein.`)
+    await bot.sendMessage(chatId, `Du hast ${type} ausgewählt. Bitte gib den Titel des ${type} ein.`)
       .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
+    
+    // Lösche die Nachricht der Kategorieauswahl
+    await bot.deleteMessage(chatId, query.message.message_id).catch(error => console.error(`Fehler beim Löschen der Nachricht: ${error.message}`));
+
     userStates[chatId] = { type, waitingForWish: true }; // Setze den Status auf "wartend auf Wunsch"
   }
 
@@ -3181,10 +3606,10 @@ bot.on('callback_query', async (query) => {
     const userId = data.split('_')[2]; // Der Ersteller des Wunsches
     const messageText = query.message.text; // Der Text des Wunsches
     const wishTitle = messageText.split('Titel:\n')[1].trim(); // Titel korrekt extrahieren
-  
-    bot.sendMessage(userId, '🎉 Dein Wunsch wurde erfüllt!')
+
+    await bot.sendMessage(userId, '🎉 Dein Wunsch wurde erfüllt!')
       .catch(error => console.error(`Fehler beim Senden der Nachricht: ${error.message}`));
-  
+
     // Wunsch in der Datei 'wishes_<chatId>.json' als erfüllt markieren
     const filePath = path.join(__dirname, 'wunsch', `wishes_${userId}.json`);
     fs.readFile(filePath, (err, data) => {
@@ -3197,7 +3622,7 @@ bot.on('callback_query', async (query) => {
           }
           return wish; // Alle anderen Wünsche unverändert lassen
         });
-  
+
         fs.writeFile(filePath, JSON.stringify(wishes, null, 2), (err) => {
           if (err) {
             console.error(`Fehler beim Aktualisieren des Wunsches: ${err}`);
@@ -3205,35 +3630,41 @@ bot.on('callback_query', async (query) => {
         });
       }
     });
+
+    // Lösche die Wunschnachricht
+    await bot.deleteMessage(chatId, query.message.message_id);
   }
-  
+
   if (data.startsWith('wish_not_fulfilled_')) {
     const userId = query.message.chat.id; // Nutze die Chat-ID des Nachrichtenautors
-    bot.sendMessage(userId, '😢 Dein Wunsch wurde leider nicht erfüllt.')
-      .catch(error => console.error(`Fehler beim Senden der Nachricht: ${error.message}`));
+    await bot.sendMessage(userId, '😢 Dein Wunsch wurde leider nicht erfüllt.')
+        .catch(error => console.error(`Fehler beim Senden der Nachricht: ${error.message}`));
 
     // Wunsch in der Datei 'w_offen.json' speichern
     const filePath = path.join(__dirname, 'w_offen.json');
     const wishDetails = {
-      userId,
-      message: query.message.text,
+        userId: userId, // Chat-ID als userId speichern
+        message: query.message.text, // Nachricht als Wunsch speichern
     };
 
     fs.readFile(filePath, (err, data) => {
-      let openWishes = [];
-      if (!err) {
-        openWishes = JSON.parse(data); // Vorhandene offene Wünsche lesen
-      }
-      openWishes.push(wishDetails); // Neuen offenen Wunsch hinzufügen
-
-      fs.writeFile(filePath, JSON.stringify(openWishes, null, 2), (err) => {
-        if (err) {
-          console.error(`Fehler beim Speichern des offenen Wunsches: ${err}`);
-        } else {
-          console.log('Der nicht erfüllte Wunsch wurde in der Datei "w_offen.json" gespeichert.');
+        let openWishes = [];
+        if (!err && data.length > 0) {
+            openWishes = JSON.parse(data); // Vorhandene offene Wünsche lesen
         }
-      });
+        openWishes.push(wishDetails); // Neuen offenen Wunsch hinzufügen
+
+        fs.writeFile(filePath, JSON.stringify(openWishes, null, 2), (err) => {
+            if (err) {
+                console.error(`Fehler beim Speichern des offenen Wunsches: ${err}`);
+            } else {
+                console.log('Der nicht erfüllte Wunsch wurde in der Datei "w_offen.json" gespeichert.');
+            }
+        });
     });
+
+    // Lösche die Wunschnachricht
+    await bot.deleteMessage(chatId, query.message.message_id);
   }
 
   bot.answerCallbackQuery(query.id).catch(error => {
@@ -3244,25 +3675,25 @@ bot.on('callback_query', async (query) => {
 // Verarbeite eingehende Nachrichten
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
-  const text = msg.text;
+  const text = msg.text || ''; // Sicherstellen, dass text definiert ist
 
   if (userStates[chatId] && userStates[chatId].waitingForWish) {
     const wish = text.trim();
     if (wish) {
       const type = userStates[chatId].type;
       await sendWish(wish, type, chatId);
-      bot.sendMessage(chatId, `Dein ${type}-Wunsch wurde übermittelt.`)
+      await bot.sendMessage(chatId, `✅ Dein ${type}-Wunsch wurde übermittelt.`)
         .catch(error => console.error(`Fehler bei der Bestätigungsnachricht: ${error.message}`));
       userStates[chatId].waitingForWish = false;
     } else {
-      bot.sendMessage(chatId, `Bitte gib den Titel des ${userStates[chatId].type} ein.`)
+      await bot.sendMessage(chatId, `✍️ Bitte gib den Titel des ${userStates[chatId].type} ein.`)
         .catch(error => console.error(`Fehler bei der Wunsch-Nachricht: ${error.message}`));
     }
     return;
   }
 
   if (text.startsWith('/wunsch')) {
-    bot.sendMessage(chatId, 'Möchtest du einen Film oder eine Serie wünschen? Wähle bitte eine Option:', getTypeKeyboard())
+    await bot.sendMessage(chatId, '🎬 Möchtest du einen Film oder eine Serie wünschen? Wähle bitte eine Option:', getTypeKeyboard())
       .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
     userStates[chatId] = { waitingForType: true };
   }
@@ -3291,42 +3722,13 @@ bot.on('message', async (msg) => {
 // Objekt zur Verfolgung der Benutzer, die auf eine Eingabe warten
 let waitingForWishIndex = {};
 
-// Funktion zum Anzeigen aller offenen Wünsche und Inline-Button zum Markieren eines Wunsches als erfüllt
-bot.onText(/\/open_wishes/, (msg) => {
-  const chatId = msg.chat.id;
-
-  // Pfad zur 'w_offen.json' Datei
-  const filePath = path.join(__dirname, 'w_offen.json');
-
-  fs.readFile(filePath, (err, data) => {
-    if (err || data.length === 0) {
-      bot.sendMessage(chatId, 'Es gibt keine offenen Wünsche.')
-        .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-    } else {
-      const openWishes = JSON.parse(data);
-      if (openWishes.length === 0) {
-        bot.sendMessage(chatId, 'Es gibt keine offenen Wünsche.')
-          .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-        return;
+// API-Endpunkt für offene Wünsche
+app.get('/api/wishes', (req, res) => {
+  fs.readFile('w_offen.json', 'utf8', (err, data) => {
+      if (err) {
+          return res.status(500).json({ error: 'Fehler beim Lesen der Wünsche' });
       }
-
-      let message = '📜 Offene Wünsche:\n\n';
-      openWishes.forEach((wish, index) => {
-        message += `${index + 1}. User ID: ${wish.userId}\n🔹 Titel: ${wish.message}\n\n`;
-      });
-
-      // Inline-Keyboard mit einem Button, um einen Wunsch als erfüllt zu markieren
-      const inlineKeyboard = {
-        reply_markup: JSON.stringify({
-          inline_keyboard: [
-            [{ text: 'Wunsch als erfüllt markieren', callback_data: 'mark_wish_fulfilled' }]
-          ]
-        })
-      };
-
-      bot.sendMessage(chatId, message, inlineKeyboard)
-        .catch(error => console.error(`Fehler bei der Nachricht: ${error.message}`));
-    }
+      res.json(JSON.parse(data));
   });
 });
 
@@ -4003,6 +4405,7 @@ function createHelpMessage() {
       `🎬 /trailer - Fordere einen Trailer für einen bestimmten Film an. \n\n` +
       `🔝 /empfehlung - Film Empfehlung des Tages.\n\n` +
       `📰 /newsletter - zeigt die Newsletter Funktion an\n\n` +
+      `🌙 /night - Schaltet den Nachtmodus ein oder aus.\n\n` + // Hinzugefügter Befehl
       `❓ /help - Zeigt diese Hilfennachricht an.\n\n`;
 }
 
@@ -4017,6 +4420,7 @@ function createMoreHelpMessage() {
       `ℹ️ /info - Anzahl Filme und Serien.\n\n` +
       `🤖 /bot - Bot-Informationen.\n\n`;
 }
+
 
 // Funktion zum Erstellen der Admin-Hilfennachricht
 function createAdminHelpMessage() {
@@ -4385,6 +4789,7 @@ app.get('/api/latest-movies', async (req, res) => {
       const movies = response.data.MediaContainer.Metadata.slice(0, 10).map(movie => ({
           title: movie.title,
           coverImage: `${process.env.PLEX_DOMAIN}${movie.thumb}?X-Plex-Token=${process.env.PLEX_TOKEN}`, // Coverbild-URL mit Token
+          summary: movie.summary // Hier fügst du die Zusammenfassung hinzu
       }));
 
       console.log(movies); // Überprüfung der Daten
@@ -4402,6 +4807,11 @@ app.get('/api/telegram-link', (req, res) => {
 
 app.get('/api/bot-version', (req, res) => {
   res.json({ version: process.env.BOT_VERSION });
+});
+
+// API-Route, die den Wert von WEB_NAME bereitstellt
+app.get('/api/web-name', (req, res) => {
+  res.json({ name: process.env.WEB_NAME });
 });
 
 // Inline-Knopf-Ereignis für Film auswählen verarbeiten
@@ -4570,15 +4980,48 @@ app.delete('/api/delete-faq', (req, res) => {
   }
 });
 
-// API-Endpunkt für offene Wünsche
 app.get('/api/wishes', (req, res) => {
   fs.readFile('w_offen.json', 'utf8', (err, data) => {
       if (err) {
           return res.status(500).json({ error: 'Fehler beim Lesen der Wünsche' });
       }
-      res.json(JSON.parse(data));
+      try {
+          // Hier kannst du die Logik zum Parsen der Datei manuell implementieren
+          const wishes = parseWishes(data);
+          res.json(wishes);
+      } catch (error) {
+          return res.status(500).json({ error: 'Fehler beim Verarbeiten der Wünsche' });
+      }
   });
 });
+
+// Funktion zum manuellen Parsen der nicht-standardisierten Daten
+function parseWishes(data) {
+    const wishes = [];
+    const lines = data.split('\n');
+    let currentWish = {};
+
+    for (let line of lines) {
+        if (line.startsWith('- userId:')) {
+            if (Object.keys(currentWish).length > 0) {
+                wishes.push(currentWish); // vorherigen Wunsch speichern
+            }
+            currentWish = { userId: parseInt(line.split(': ')[1]) }; // userId speichern
+        } else if (line.startsWith('message: |-')) {
+            // Nächste Zeile ist der Beginn der Nachricht
+            currentWish.message = '';
+        } else if (currentWish.message !== undefined) {
+            currentWish.message += line + '\n'; // Nachricht aufbauen
+        }
+    }
+
+    // Den letzten Wunsch hinzufügen
+    if (Object.keys(currentWish).length > 0) {
+        wishes.push(currentWish);
+    }
+
+    return wishes;
+}
 
 // Endpoint für das Feedback
 app.get('/api/feedback', (req, res) => {
@@ -4593,12 +5036,20 @@ app.get('/api/feedback', (req, res) => {
   });
 });
 
+
+
+
+
+
+
+
+
 // Endpunkt /api/users, um die user.yml-Datei zu lesen und die Daten im JSON-Format zurückzugeben
 app.get('/api/users', (req, res) => {
   try {
       // Pfad zur user.yml-Datei
       const filePath = path.join(__dirname, 'user.yml');
-      
+
       // YAML-Datei laden
       const file = fs.readFileSync(filePath, 'utf8');
 
@@ -4606,16 +5057,28 @@ app.get('/api/users', (req, res) => {
       const data = yaml.parse(file);  // 'parse' Funktion verwenden
 
       // Benutzerobjekte in ein Array umwandeln
-      const usersArray = Object.values(data).map(user => ({
-          userId: user.userId,
-          username: user.username,
-          notifications: user.notifications,
-          firstUsed: user.firstUsed,
-          favoriteGenre: user.favoriteGenre,
-          commandCount: user.commandCount || 0,  // Default auf 0, wenn nicht vorhanden
-          userLevel: user.userLevel || 'Nicht festgelegt', // Default-Wert
-          nightMode: user.nightMode || {} // Optionales Feld
-      }));
+      const usersArray = Object.values(data).map(user => {
+          // Überprüfen, ob nightModes vorhanden sind und Werte abrufen
+          const nightMode = user.nightModes && user.nightModes.length > 0 ? user.nightModes[0] : null;
+          
+          // Wenn kein Nachtmodus vorhanden ist, dann "Deaktiviert" anzeigen
+          const nightModeDisplay = nightMode 
+              ? `${nightMode.startTime} - ${nightMode.endTime}` 
+              : 'Deaktiviert';  // Hier den gewünschten Text verwenden
+
+          return {
+              userId: user.userId,
+              username: user.username,
+              notifications: user.notifications,
+              firstUsed: user.firstUsed,
+              favoriteGenres: user.favoriteGenres && user.favoriteGenres.length > 0
+                  ? user.favoriteGenres.join(', ') // Falls favoriteGenres existiert, kommagetrenntes Format
+                  : (user.favoriteGenre || 'Nicht festgelegt'), // Fallback auf favoriteGenre oder Standardwert
+              commandCount: user.commandCount || 0,  // Standard auf 0, wenn nicht vorhanden
+              userLevel: user.userLevel || 'Nicht festgelegt', // Standard-Wert
+              nightMode: nightModeDisplay // Verwendung der neuen Logik für die Nachtmodus-Anzeige
+          };
+      });
 
       // JSON-Daten zurückgeben
       res.json(usersArray);
@@ -4624,37 +5087,6 @@ app.get('/api/users', (req, res) => {
       res.status(500).json({ message: 'Fehler beim Laden der Benutzerdaten' });
   }
 });
-
-// Endpunkt zum Löschen eines Benutzers
-app.delete('/api/users/:userId', (req, res) => {
-  const userId = req.params.userId;
-
-  try {
-      // Pfad zur user.yml-Datei
-      const filePath = path.join(__dirname, 'user.yml');
-
-      // YAML-Datei laden
-      const file = fs.readFileSync(filePath, 'utf8');
-      const data = yaml.parse(file); // YAML in ein JSON-Objekt konvertieren
-
-      // Überprüfe, ob der Benutzer existiert
-      if (!data[userId]) {
-          return res.status(404).json({ message: 'Benutzer nicht gefunden' });
-      }
-
-      // Benutzer aus den Daten entfernen
-      delete data[userId];
-
-      // Aktualisiere die YAML-Datei mit den neuen Daten
-      fs.writeFileSync(filePath, yaml.stringify(data), 'utf8');
-
-      res.json({ message: 'Benutzer erfolgreich gelöscht' });
-  } catch (err) {
-      console.error('Fehler beim Löschen des Benutzers:', err);
-      res.status(500).json({ message: 'Fehler beim Löschen des Benutzers' });
-  }
-});
-
 
 let lastRestart = new Date(); // Speichere den aktuellen Zeitpunkt als letzten Neustart
 
@@ -4887,6 +5319,31 @@ app.post('/api/download-backup', (req, res) => {
     }
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // API-Endpunkt zum Abrufen der Entwicklerberichte
 app.get('/api/dev-reports', (req, res) => {
   try {
@@ -4918,43 +5375,43 @@ app.use(bodyParser.json());
 
 // API zum Empfangen der Berichte von der HTML-Seite
 app.post('/api/submit-report', (req, res) => {
-    const { type, user, message } = req.body;
+  const { type, user, message } = req.body;
 
-    // Falls keine Chat-ID vorhanden ist, generiere eine zufällige ID
-    const chatId = user.id || Math.floor(Math.random() * 1000000);
+  // Falls keine Chat-ID vorhanden ist, generiere eine zufällige ID
+  const chatId = user.id || Math.floor(Math.random() * 1000000);
 
-    const newReport = {
-        id: Date.now(), // Verwende die aktuelle Zeit als eindeutige ID
-        type,
-        user: {
-            name: user.name || 'Anonym',
-            id: chatId
-        },
-        message,
-        timestamp: new Date().toISOString()
-    };
+  const newReport = {
+      id: Date.now(), // Verwende die aktuelle Zeit als eindeutige ID
+      type,
+      user: {
+          name: user.name || 'Anonym',
+          id: chatId
+      },
+      message,
+      timestamp: new Date().toISOString()
+  };
 
-    try {
-        // Berichte aus der Datei laden oder ein leeres Array verwenden
-        let reports = [];
-        if (fs.existsSync(DEV_REPORTS_FILE_PATH)) {
-            reports = JSON.parse(fs.readFileSync(DEV_REPORTS_FILE_PATH, 'utf-8'));
-        }
+  try {
+      // Berichte aus der Datei laden oder ein leeres Array verwenden
+      let reports = [];
+      if (fs.existsSync(DEV_REPORTS_FILE_PATH)) {
+          reports = JSON.parse(fs.readFileSync(DEV_REPORTS_FILE_PATH, 'utf-8'));
+      }
 
-        // Füge den neuen Bericht hinzu
-        reports.push(newReport);
+      // Füge den neuen Bericht hinzu
+      reports.push(newReport);
 
-        // Datei aktualisieren
-        fs.writeFileSync(DEV_REPORTS_FILE_PATH, JSON.stringify(reports, null, 2));
+      // Datei aktualisieren
+      fs.writeFileSync(DEV_REPORTS_FILE_PATH, JSON.stringify(reports, null, 2));
 
-        // Optional: Senden des Berichts an Telegram
-        sendToTelegram(newReport);
+      // Optional: Senden des Berichts an Telegram
+      sendToTelegram(newReport);
 
-        res.status(200).json({ message: 'Bericht erfolgreich übermittelt.' });
-    } catch (error) {
-        console.error('Fehler beim Schreiben des Berichts:', error);
-        res.status(500).json({ message: 'Fehler beim Schreiben des Berichts.' });
-    }
+      res.status(200).json({ message: 'Bericht erfolgreich übermittelt.' });
+  } catch (error) {
+      console.error('Fehler beim Schreiben des Berichts:', error);
+      res.status(500).json({ message: 'Fehler beim Schreiben des Berichts.' });
+  }
 });
 
 function sendToTelegram(report) {
@@ -4980,43 +5437,26 @@ function sendToTelegram(report) {
 
 
 
+
+
+
+
+
+
+
+
+
 // Ende Frontend
+
+
+
 
 /// Definition der logDebug-Funktion
 function logDebug(message) {
   console.log(`${new Date().toISOString()} - DEBUG: ${message}`);
 }
 
-// Funktion zum Verarbeiten von Webhook-Anfragen
-app.post('/mywebhook', async (req, res) => {
-try {
-  const event = req.body;
-  logDebug(`Received webhook event: ${JSON.stringify(event, null, 2)}`);
 
-  if (event.type === 'library.new' && event.Metadata) {
-    const addedMovie = event.Metadata;
-    const movieTitle = addedMovie.title || 'Unbekannt';
-    const message = `Ein neuer Film wurde hinzugefügt:\n\nTitel: ${movieTitle}`;
-
-    const users = yaml.load(USER_YML_PATH);
-    const sendMessages = Object.keys(users).map(chatId =>
-      bot.sendMessage(chatId, message).catch(error => {
-        logError(`Error sending message to chatId ${chatId}: ${error.message}`);
-      })
-    );
-
-    await Promise.all(sendMessages);
-    logMessage(`Sent new movie message to all users`);
-  } else {
-    logDebug(`Unhandled event type or missing metadata: ${event.type}`);
-  }
-
-  res.sendStatus(200);
-} catch (error) {
-  logError(`Error processing webhook: ${error.message}`);
-  res.sendStatus(500);
-}
-});
 
 // Express-Server starten
 app.listen(PORT, () => {
