@@ -1,0 +1,230 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f4f8; /* Helles Hintergrundfarbe */
+    color: #333; /* Dunkle Schriftfarbe */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column; /* Flex-Kolonne für die gesamte Seite */
+    align-items: center; /* Zentrieren der Inhalte */
+    min-height: 100vh; /* Mindesthöhe auf 100% des Viewports setzen */
+    overflow-x: hidden; /* Verhindert horizontales Scrollen */
+    transition: background-color 0.3s, color 0.3s; /* Übergang für Farbänderungen */
+}
+
+h2 {
+    color: #4CAF50; /* Grüner Titel für die Anleitung */
+    margin-bottom: 10px; /* Abstand unter dem Titel */
+}
+
+ol {
+    padding-left: 20px; /* Einrückung für die nummerierte Liste */
+}
+
+li {
+    margin: 10px 0; /* Abstand zwischen den Listenelementen */
+}
+
+body.dark-mode {
+    background-color: #121212; /* Dunkler Hintergrund für den Darkmode */
+    color: #f0f4f8; /* Helle Schriftfarbe im Darkmode */
+}
+
+.navbar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.navbar-link {
+    margin: 0 10px; /* Reduziere den horizontalen Abstand */
+    text-decoration: none;
+    color: #333;
+    transition: color 0.3s;
+}
+
+.navbar-link:hover {
+    color: #007bff;
+}
+
+.switch {
+    position: fixed; /* Fixiert die Position des Schalters */
+    bottom: 20px; /* Abstand vom unteren Rand */
+    right: 20px; /* Abstand vom rechten Rand */
+    z-index: 1000; /* Sicherstellen, dass es über anderen Inhalten liegt */
+    width: 50px; /* Breite des Umschalters */
+    height: 24px; /* Höhe des Umschalters */
+}
+
+.switch input {
+    opacity: 0; /* Unsichtbar, um nur den Slider anzuzeigen */
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc; /* Hintergrundfarbe des Umschalters */
+    transition: .4s; /* Übergang für den Umschalters */
+    border-radius: 34px; /* Abgerundete Ecken für den Umschalters */
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px; /* Höhe des Schiebereglers */
+    width: 20px; /* Breite des Schiebereglers */
+    left: 2px; /* Abstand vom linken Rand */
+    bottom: 2px; /* Abstand vom unteren Rand */
+    background-color: white; /* Hintergrundfarbe des Schiebereglers */
+    border-radius: 50%; /* Abgerundete Ecken für den Schieberegler */
+    transition: .4s; /* Übergang für den Schieberegler */
+}
+
+/* Zustand für den aktiven Schieberegler */
+input:checked + .slider {
+    background-color: #3b82f6; /* Hintergrundfarbe des Umschalters bei Aktivierung */
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px); /* Bewege den Schieberegler nach rechts */
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    width: 90%; /* Stelle sicher, dass es nicht mehr als 100% des Viewports einnimmt */
+    max-width: 1200px; /* Maximale Breite für größere Bildschirme */
+    margin: 0 auto; /* Zentrieren der Container */
+    margin-top: 200px; /* Negativer Margin, um den Container nach unten zu verschieben */
+    overflow: hidden; /* Verhindert Überlauf */
+}
+
+main {
+    flex: 1;
+    padding: 20px;
+    background-color: white; /* Weißer Hintergrund für den Hauptbereich */
+    border-right: 1px solid #e0e0e0; /* Trennlinie zwischen Haupt- und Sidebar */
+    transition: background-color 0.3s; /* Übergang für den Hintergrund */
+    border: 4px solid #3b82f6;
+    border-radius: 15px;
+    margin-bottom: 130px;
+}
+
+body.dark-mode main {
+    background-color: #1e1e1e; /* Dunkler Hintergrund für den Hauptbereich im Darkmode */
+    border: 4px solid #3b82f6;
+    border-radius: 15px;
+    margin-bottom: 130px;
+}
+
+h2 {
+    color: #3b82f6; /* Grüner Titel für die Filme */
+    margin-bottom: 10px; /* Abstand unter dem Untertitel */
+}
+
+/* Code-Stile */
+code {
+    background-color: #424242; /* Dunkler Hintergrund für den Code */
+    border-radius: 3px; /* Abgerundete Ecken */
+    padding: 2px 4px; /* Innenabstand für den Code */
+    font-family: 'Courier New', Courier, monospace; /* Monospace-Schriftart für Code */
+    color: #e0e0e0; /* Helle Schriftfarbe */
+    border: 1px solid #d8d3d3; /* Dunklerer Rahmen für den Code im Darkmode */
+}
+
+/* Stile für starken Text */
+strong {
+    color: #ffab00; /* Helle Farbe für starken Text im Darkmode */
+    font-weight: bold; /* Fett für die starken Elemente */
+}
+
+/* Container für Befehle */
+.command-container {
+    background-color: #1e1e1e; /* Dunkler Hintergrund für den Container */
+    border: 1px solid #333; /* Dunkler Rahmen für den Container */
+    border-radius: 5px; /* Abgerundete Ecken */
+    padding: 10px; /* Innenabstand */
+    margin: 10px 0; /* Abstand zu anderen Elementen */
+}
+
+/* Content */
+#content {
+    margin-left: 260px;
+    padding: 30px;
+    background-color: #f8fafc;
+    min-height: 90vh;
+}
+
+/* Header (Willkommensbox) */
+.welcome-box {
+    background-color: #1f2937;
+    color: white;
+    padding: 15px 20px; /* Padding verkleinert */
+    border-radius: 0 0 15px 15px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    font-size: 1.2em; /* Schriftgröße verkleinert */
+    font-weight: 300;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 999;
+    border-bottom: 4px solid #3b82f6;
+}
+
+
+/* Footer */
+.footer {
+    background-color: #1f2937;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    font-size: 0.9em;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    left: 0;
+    border-top: 4px solid #3b82f6;
+}
+
+/* Navbar Links */
+.navbar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.navbar-link {
+    margin: 0 15px;
+    text-decoration: none;
+    color: white;
+    font-size: 1em;
+    transition: color 0.3s;
+}
+
+.navbar-link:hover {
+    color: #3b82f6;
+}
+
+/* Logo-Container separat und links oben positionieren */
+.logo-container {
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    z-index: 1000; /* Über anderen Elementen */
+}
+
+.logo {
+    height: 100px; /* Vergrößere das Logo nach Bedarf */
+    position: fixed; /* Fixiere das Logo */
+    top: 40px; /* Abstand vom oberen Rand */
+    left: 40px; /* Abstand vom linken Rand */
+    z-index: 1000; /* Stelle sicher, dass das Logo über anderen Inhalten liegt */
+}

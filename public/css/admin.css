@@ -1,0 +1,1414 @@
+#content {
+    margin-left: 220px; /* Platz für die Sidebar */
+    padding: 20px;
+}
+
+/* Stil für das Login-Formular */
+#login-form {
+    width: 100%;
+    max-width: 400px;
+    background-color: #fff; /* Heller Hintergrund für den Darkmode */
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    
+    /* Neue Positionierungsregeln */
+    position: absolute;
+    top: 54%;
+    left: 50%;
+    transform: translate(-50%, -50%);  /* Um das Formular zu zentrieren */
+}
+
+.login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.login-logo {
+    width: 250px;
+    height: 300px;
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+input[name="password"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px; /* Weniger Platz für die Fehlermeldung */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.error-message {
+    color: red;
+    font-size: 14px;
+    margin-bottom: 20px; /* Abstand zur Schaltfläche */
+    display: none; /* Wird standardmäßig nicht angezeigt */
+}
+
+#logout-timer-box {
+    position: fixed; /* Fixiert die Box, damit sie immer sichtbar bleibt */
+    margin-top: 0px; /* Abstände nach oben */
+    right: 10px; /* Abstand vom rechten Rand */
+    width: 60%; /* Nimmt 60% der Breite ein */
+    z-index: 9999; /* Höhere Z-Index für Überlagerung */
+    background-color: transparent; /* Hintergrund vollständig transparent */
+    color: red; /* Textfarbe in rot */
+    padding: 10px; /* Innenabstand */
+    border-radius: 5px; /* Abgerundete Ecken */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Leichter Schatten für Tiefe */
+    max-width: 300px; /* Maximale Breite */
+    word-wrap: break-word; /* Textumbruch */
+}
+
+button[type="submit"] {
+    width: 107%;
+    padding: 12px;
+    background-color: #007bff;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+#admin-area {
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-container {
+    flex: 1 1 30%; /* Flex-Basis für die Boxen */
+    margin: 10px;
+    min-width: 250px; /* Minimalgröße für die Boxen */
+}
+
+.dashboard-box {
+    background-color: #fff; /* Heller Hintergrund für Dashboard-Boxen */
+    border-radius: 5px;
+    padding: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: relative; /* Für die Resize-Buttons */
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dashboard-header h3 {
+    margin: 0;
+}
+
+.resize {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.large {
+    transform: scale(1.05); /* Vergrößert die Box */
+    transition: transform 0.3s;
+}
+
+#bot-uptime {
+    background-color: #e8f0fe; /* Heller Hintergrund für die Bot-Laufzeit-Box */
+    border: 1px solid #b0d4ff; /* Rand in einem hellen Blau */
+    border-radius: 15px; /* Abgerundete Ecken */
+    padding: 10px; /* Kleineren Innenabstand */
+    width: 400px; /* Feste Breite für die Box */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Schatten für die Box */
+    transition: transform 0.2s; /* Weicher Übergang für Hover-Effekte */
+    margin: 0 auto; /* Zentriert die Box horizontal */
+}
+
+#dashboard {
+    display: flex; /* Flexbox aktivieren */
+    flex-wrap: wrap; /* Boxen umbrechen, um in der nächsten Zeile anzuzeigen */
+    gap: 20px; /* Abstand zwischen den Boxen */
+    margin-top: 100px; /* Abstand nach oben */
+    justify-content: center; /* Zentriert die Boxen im Container */
+}
+
+/* Box-spezifische Styles für die Bot-Laufzeit- und Server-Info-Box */
+#bot-uptime, #server-info {
+    background-color: #e8f0fe; /* Heller Hintergrund für die Bot-Laufzeit-Box */
+    border: 1px solid #b0d4ff; /* Rand in einem hellen Blau */
+    border-radius: 15px; /* Abgerundete Ecken */
+    padding: 10px; /* Kleineren Innenabstand */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Schatten für die Box */
+    transition: transform 0.2s; /* Weicher Übergang für Hover-Effekte */
+    flex: 1 1 300px; /* Flex-Basis für die Boxen */
+    margin: 10px; /* Abstand um die Boxen herum */
+}
+
+/* Server-Info Box spezifische Styles */
+#server-info {
+    background-color: #f0f4ff; /* Heller Hintergrund für die Server-Info-Box */
+    border: 1px solid #b0d4ff; /* Rand in einem hellen Blau */
+    border-radius: 15px; /* Abgerundete Ecken */
+    padding: 10px; /* Innenabstand */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Schatten für die Box */
+    transition: transform 0.2s; /* Weicher Übergang für Hover-Effekte */
+    width: 400px; /* Feste Breite für die Box */
+    flex: 1 1 300px; /* Flex-Basis für die Boxen */
+    margin: -215px 550px; /* Oben: -20px für nach oben, Rechts: 20px für nach rechts */
+}
+
+/* Die Höhe der Boxen anpassen, falls notwendig */
+#bot-uptime, #server-info {
+    min-height: auto; /* Mindesthöhe für die Boxen */
+}
+
+#file-check {
+    background-color: #e8f0fe; /* Heller Hintergrund für die Box */
+    border: 1px solid #b0d4ff; /* Rand in einem hellen Blau */
+    border-radius: 15px; /* Abgerundete Ecken */
+    padding: 10px; /* Kleineren Innenabstand */
+    width: 400px; /* Feste Breite für die Box */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Schatten für die Box */
+    transition: transform 0.2s; /* Weicher Übergang für Hover-Effekte */
+    margin: -240px 1100px; /* Oben: -20px für nach oben, Rechts: 20px für nach rechts */
+}
+
+/* Dark Mode spezifische Styles */
+body.dark-mode {
+    background-color: #181818; /* Dunkler Hintergrund */
+    color: #e0e0e0; /* Helle Schriftfarbe */
+}
+
+body.dark-mode #login-form {
+    background-color: #1f2937; /* Dunkler Hintergrund für das Login-Formular */
+    border: 1px solid #3b82f6; /* Randfarbe für das Login-Formular im Dark Mode */
+}
+
+body.dark-mode h2,
+body.dark-mode .error-message {
+    color: #e0e0e0; /* Helle Schriftfarbe für Titel und Fehlermeldungen */
+}
+
+body.dark-mode #bot-uptime,
+body.dark-mode #server-info {
+    background-color: #1f2937; /* Dunkler Hintergrund für die Boxen */
+    border: 1px solid #3b82f6; /* Randfarbe für Boxen im Dark Mode */
+}
+
+body.dark-mode #file-check {
+    background-color: #1f2937; /* Dunkler Hintergrund für die Box */
+    border: 1px solid #3b82f6; /* Randfarbe für die Box im Dark Mode */
+}
+
+.log-container {
+    display: flex; /* Aktiviert Flexbox */
+    gap: 20px; /* Abstand zwischen den Boxen */
+}
+
+.log-box {
+    flex: 1; /* Lässt die Boxen gleichmäßig den verfügbaren Platz einnehmen */
+    border: 1px solid #ccc; /* Heller Rand */
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #f9f9f9; /* Heller Hintergrund */
+}
+
+.log-box h3 {
+    margin: 0 0 10px;
+}
+
+.log-box pre {
+    white-space: pre-wrap; /* Damit lange Texte umgebrochen werden */
+    overflow-x: auto; /* Scrollbalken hinzufügen, wenn der Text zu lang ist */
+}
+
+.dashboard-header {
+    display: flex; /* Flexbox für den Header */
+    justify-content: space-between; /* Abstand zwischen Titel und Button */
+    align-items: center; /* Vertikale Ausrichtung */
+}
+
+.dashboard-header h3 {
+    margin: 0; /* Kein Margin für den Titel */
+    color: #333; /* Dunkle Schriftfarbe */
+}
+
+.resize {
+    background: none; /* Kein Hintergrund */
+    border: none; /* Kein Rahmen */
+    cursor: pointer; /* Zeiger beim Hover */
+    font-size: 16px; /* Schriftgröße für den Resize-Button */
+    color: #007bff; /* Blaue Schriftfarbe */
+}
+
+.resize:hover {
+    color: #0056b3; /* Dunklerer Blauton beim Hover */
+}
+
+/* CSS für die offenen Wünsche */
+.wishes-box {
+    border: 1px solid #ccc; /* Heller Rand */
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    background-color: #f9f9f9; /* Heller Hintergrund */
+}
+
+.wish-item {
+    border-bottom: 1px solid #ddd; /* Heller Unterrand */
+    padding: 10px 0;
+}
+
+.wish-item:last-child {
+    border-bottom: none; /* Letztes Element hat keinen Unterrand */
+}
+
+.wish-message {
+    font-size: 1.1em;
+}
+
+.wish-buttons {
+    margin-top: 10px;
+}
+
+.wish-button {
+    background-color: #28a745; /* Grün für erfüllt */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.wish-button.delete {
+    background-color: #dc3545; /* Rot für löschen */
+}
+
+.wish-button:hover {
+    opacity: 0.8;
+}
+
+/* Feedback-Bereich */
+#feedback {
+    padding: 20px;
+    margin-top: 60px;
+    background-color: #f9f9f9; /* Heller Hintergrund */
+    border: 1px solid #ddd; /* Leichter Rahmen */
+    border-radius: 5px; /* Abgerundete Ecken */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sanfte Schatten */
+}
+
+/* Feedback-Inhalt */
+#feedback-content {
+    margin-top: 10px; /* Abstand über dem Inhalt */
+}
+
+/* Einzelne Feedback-Nachricht */
+.feedback-item {
+    padding: 10px;
+    background-color: #ffffff; /* Weißer Hintergrund */
+    border: 1px solid #e0e0e0; /* Leichter Rahmen */
+    border-radius: 4px; /* Abgerundete Ecken */
+    margin-bottom: 10px; /* Abstand zwischen den Nachrichten */
+    transition: background-color 0.3s; /* Weicher Übergang */
+}
+
+.feedback-item:hover {
+    background-color: #f1f1f1; /* Hellgraue Hintergrundfarbe beim Hover */
+}
+
+/* Feedback-Nachrichtstext */
+.feedback-message {
+    font-size: 14px; /* Schriftgröße für die Nachricht */
+    color: #333; /* Dunkle Schriftfarbe */
+}
+
+#admin-help {
+    background-color: #f9f9f9; /* Heller Hintergrund */
+    padding: 20px; /* Innenabstand */
+    border-radius: 10px; /* Abgerundete Ecken */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Schatten für die Box */
+    margin-top: 80px; /* Abstand nach oben */
+    display: block; /* Standardmäßig sichtbar */
+    width: 800px;
+    margin-left: 350px; /* Abstand links */
+    margin-top: 80px; /* Abstand oben */
+}
+
+/* Dark Mode Styles für den Admin-Hilfe-Container */
+.dark-mode #admin-help {
+    background-color: #2a2a2a; /* Dunkler Hintergrund */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); /* Dunklerer Schatten */
+    color: #e0e0e0; /* Helle Schriftfarbe */
+}
+
+#admin-help h3 {
+    color: #333; /* Dunkle Schriftfarbe für die Überschrift */
+    margin-top: 0; /* Kein Margin für die Überschrift */
+}
+
+/* Dark Mode Styles für Überschrift */
+.dark-mode #admin-help h3 {
+    color: #e0e0e0; /* Helle Schriftfarbe für die Überschrift */
+}
+
+#admin-help p {
+    line-height: 1.5; /* Zeilenhöhe für besseren Textabstand */
+    color: #555; /* Etwas hellere Schriftfarbe */
+}
+
+/* Dark Mode Styles für Textabsätze */
+.dark-mode #admin-help p {
+    color: #ccc; /* Helle Schriftfarbe für Absätze */
+}
+
+#admin-help ul {
+    padding-left: 20px; /* Linker Innenabstand für die Liste */
+    color: #333; /* Dunkle Schriftfarbe für die Listen */
+}
+
+/* Dark Mode Styles für Listen */
+.dark-mode #admin-help ul {
+    color: #e0e0e0; /* Helle Schriftfarbe für die Listen */
+}
+
+#admin-help ul li {
+    margin-bottom: 10px; /* Abstand zwischen den Listenelementen */
+}
+
+/* Dark Mode Styles für Listenelemente */
+.dark-mode #admin-help ul li {
+    color: #ccc; /* Helle Schriftfarbe für Listenelemente */
+}
+
+#admin-help code {
+    background-color: #e8e8e8; /* Heller Hintergrund für Code-Elemente */
+    padding: 2px 4px; /* Innenabstand für Code-Elemente */
+    border-radius: 3px; /* Abgerundete Ecken */
+}
+
+/* Dark Mode Styles für Code-Elemente */
+.dark-mode #admin-help code {
+    background-color: #444; /* Dunkler Hintergrund für Code-Elemente */
+    color: #e0e0e0; /* Helle Schriftfarbe für Code */
+}
+
+
+#bot-restart {
+    background-color: #e8f0fe; /* Heller Hintergrund für die Bot-Laufzeit-Box */
+    border: 1px solid #b0d4ff; /* Rand in einem hellen Blau */
+    border-radius: 15px; /* Abgerundete Ecken */
+    padding: 10px; /* Kleineren Innenabstand */
+    width: 400px; /* Feste Breite für die Box */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Schatten für die Box */
+    transition: transform 0.2s; /* Weicher Übergang für Hover-Effekte */
+    margin: 0 auto; /* Zentriert die Box horizontal */
+    left: -570px; /* Verschiebt die Box 50 Pixel nach links */
+}
+
+/* Dark Mode Styles */
+.dark-mode #bot-restart {
+    background-color: #1f2937; /* Dunkler Hintergrund für die Bot-Laufzeit-Box */
+    border: 1px solid #3b82f6; /* Helle Rahmenfarbe für den Dark Mode */
+    color: #e0e0e0; /* Helle Schriftfarbe */
+}
+
+
+#send-message {
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid #ccc; /* Heller Rand */
+    border-radius: 5px;
+    margin-top: 100px; /* Abstand oben */
+    background-color: #f9f9f9; /* Heller Hintergrund */
+}
+
+/* Dark Mode spezifische Styles */
+body.dark-mode {
+    color: #e0e0e0; /* Helle Schriftfarbe */
+}
+
+body.dark-mode .log-box {
+    border: 1px solid #3b82f6; /* Dunkler Rand im Darkmode */
+    background-color: #1f2937; /* Dunkler Hintergrund für Log-Boxen */
+}
+
+body.dark-mode .dashboard-header h3,
+body.dark-mode .resize {
+    color: #e0e0e0; /* Helle Schriftfarbe für Titel und Resize-Buttons */
+}
+
+body.dark-mode .wishes-box,
+body.dark-mode #feedback,
+body.dark-mode .feedback-item,
+body.dark-mode #admin-help {
+    background-color: #1f2937; /* Dunkler Hintergrund */
+    border: 1px solid #3b82f6; /* Dunkler Rand im Darkmode */
+}
+
+body.dark-mode .wish-button {
+    background-color: #28a745; /* Grün für erfüllt */
+    color: white; /* Weißer Text */
+}
+
+body.dark-mode .wish-button.delete {
+    background-color: #dc3545; /* Rot für löschen */
+}
+
+body.dark-mode #send-message {
+    background-color: #1f2937; /* Dunkler Hintergrund */
+    border: 1px solid #3b82f6; /* Dunkler Rand */
+}
+
+body.dark-mode .feedback-item {
+    background-color: #1f1f1f; /* Dunkler Hintergrund für Feedback-Nachrichten */
+    border: 1px solid #3b82f6; /* Dunkler Rand */
+}
+
+body.dark-mode .feedback-message {
+    color: #e0e0e0; /* Helle Schriftfarbe */
+}
+
+#send-message textarea {
+    width: 98%;
+    padding: 10px;
+    border: 1px solid #ccc; /* Heller Rand */
+    border-radius: 4px;
+    font-size: 1em;
+    resize: none; /* Verhindert das Vergrößern des Textfeldes */
+}
+
+#send-message button {
+    padding: 10px 15px;
+    font-size: 1em;
+    color: white;
+    background-color: #28a745; /* Grüner Hintergrund */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#send-message button:hover {
+    background-color: #218838; /* Dunkleres Grün beim Hover */
+}
+
+#send-message-status {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+/* Stil für den Inhalt der Medienanzahl */
+#media-count-content {
+    margin-top: 10px; /* Abstand oben */
+    font-size: 1.2em; /* Schriftgröße */
+}
+
+/* Stil für den Lade-Text */
+#media-count-content.loading {
+    color: #ffcc00; /* Gelbe Farbe für Lade-Text */
+    font-style: italic; /* Kursivschrift */
+}
+
+#media-count {
+    background-color: #e8f0fe; /* Heller Hintergrund */
+    border: 1px solid #b0d4ff; /* Rand in einem hellen Blau */
+    border-radius: 15px; /* Abgerundete Ecken */
+    padding: 10px; /* Kleineren Innenabstand */
+    width: 400px; /* Feste Breite für die Box */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Schatten für die Box */
+    transition: transform 0.2s; /* Weicher Übergang für Hover-Effekte */
+    margin: 0 auto; /* Zentriert die Box horizontal */
+    left: -570px; /* Verschiebt die Box 50 Pixel nach links */
+}
+
+#backup {
+    padding: 20px;
+    background-color: #f9f9f9; /* Heller Hintergrund */
+    border: 1px solid #ccc; /* Heller Rand */
+    border-radius: 5px; /* Abgerundete Ecken */
+}
+
+#backup h2 {
+    margin: 0 0 10px;
+}
+
+#backup button {
+    padding: 10px 15px;
+    background-color: #007bff; /* Blauer Hintergrund */
+    color: white; /* Weißer Text */
+    border: none; /* Kein Rand */
+    border-radius: 5px; /* Abgerundete Ecken */
+    cursor: pointer; /* Zeiger beim Hover */
+}
+
+#backup button:hover {
+    background-color: #0056b3; /* Dunkleres Blau beim Hover */
+}
+
+.backup-password {
+    margin-left: 10px; /* Abstand nach links */
+}
+
+/* Modernisiertes Design für Header, Footer und Sidebar */
+
+/* Body */
+body {
+    font-family: 'Roboto', sans-serif; /* Schriftart */
+    background-color: #f4f4f4; /* Heller Hintergrund */
+    margin: 0; /* Kein Margin */
+    padding: 0; /* Kein Padding */
+}
+
+/* Sidebar */
+#sidebar {
+    width: 240px; /* Breite der Sidebar */
+    margin-top: 130px; /* Abstand oben */
+    background-color: #1f2937; /* Dunkler Hintergrund */
+    color: #fff; /* Weiße Schriftfarbe */
+    padding: 20px; /* Innenabstand */
+    position: fixed; /* Fixierte Position */
+    height: calc(100% - 130px); /* Höhe der Sidebar */
+    overflow-y: auto; /* Vertikales Scrollen */
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Schatten */
+}
+
+#sidebar h2 {
+    text-align: center; /* Zentrierte Überschrift */
+    font-size: 1.5em; /* Schriftgröße */
+    margin-bottom: 30px; /* Abstand unten */
+}
+
+#sidebar ul {
+    list-style-type: none; /* Keine Aufzählungszeichen */
+    padding: 0; /* Kein Padding */
+}
+
+#sidebar ul li {
+    margin: 15px 0; /* Abstand zwischen den Listenelementen */
+}
+
+#sidebar ul li a {
+    color: #fff; /* Weiße Schriftfarbe */
+    text-decoration: none; /* Keine Unterstreichung */
+    display: block; /* Blockelement */
+    padding: 12px 15px; /* Innenabstand */
+    border-radius: 8px; /* Abgerundete Ecken */
+    transition: background-color 0.3s; /* Übergangseffekt */
+}
+
+#sidebar ul li a:hover {
+    background-color: #3b82f6; /* Blauer Hintergrund beim Hover */
+}
+
+/* Content */
+#content {
+    margin-left: 260px; /* Abstand links */
+    padding: 30px; /* Innenabstand */
+    min-height: 90vh; /* Minimale Höhe */
+}
+
+/* Header (Willkommensbox) */
+.welcome-box {
+    background-color: #1f2937; /* Dunkler Hintergrund */
+    color: white; /* Weiße Schriftfarbe */
+    padding: 15px 20px; /* Innenabstand */
+    border-radius: 0 0 15px 15px; /* Abgerundete Ecken unten */
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2); /* Schatten */
+    text-align: center; /* Zentrierter Text */
+    font-size: 1.2em; /* Schriftgröße */
+    font-weight: 300; /* Schriftgewicht */
+    position: fixed; /* Fixierte Position */
+    top: 0; /* Abstand oben */
+    left: 0; /* Abstand links */
+    width: 100%; /* Breite */
+    z-index: 999; /* Über anderen Elementen */
+    border-bottom: 4px solid #3b82f6; /* Blauer unterer Rand */
+}
+
+/* Footer */
+.footer {
+    background-color: #1f2937; /* Dunkler Hintergrund */
+    color: white; /* Weiße Schriftfarbe */
+    text-align: center; /* Zentrierter Text */
+    padding: 20px; /* Innenabstand */
+    font-size: 0.9em; /* Schriftgröße */
+    position: fixed; /* Fixierte Position */
+    bottom: 0; /* Abstand unten */
+    width: 100%; /* Breite */
+    left: 0; /* Abstand links */
+    border-top: 4px solid #3b82f6; /* Blauer oberer Rand */
+}
+
+/* Dark Mode spezifische Styles */
+body.dark-mode {
+    background-color: #181818; /* Dunkler Hintergrund */
+    color: #e0e0e0; /* Helle Schriftfarbe */
+}
+
+
+body.dark-mode #send-message textarea {
+    border: 1px solid #3b82f6; /* Dunkler Rand */
+    background-color: #1f1f1f; /* Dunkler Hintergrund */
+    color: #e0e0e0; /* Helle Schriftfarbe */
+}
+
+body.dark-mode #send-message button {
+    background-color: #28a745; /* Grüner Hintergrund */
+}
+
+body.dark-mode #send-message button:hover {
+    background-color: #218838; /* Dunkleres Grün beim Hover */
+}
+
+body.dark-mode #media-count {
+    background-color: #1f2937; /* Dunkler Hintergrund */
+    border: 1px solid #3b82f6; /* Dunkler Rand */
+}
+
+body.dark-mode #backup {
+    background-color: #1f1f1f; /* Dunkler Hintergrund */
+    border: 1px solid #3b82f6; /* Dunkler Rand */
+}
+
+body.dark-mode #sidebar {
+    background-color: #1a1a1a; /* Dunklerer Hintergrund für die Sidebar */
+}
+
+body.dark-mode #sidebar ul li a {
+    color: #e0e0e0; /* Helle Schriftfarbe für Sidebar-Links */
+}
+
+body.dark-mode #sidebar ul li a:hover {
+    background-color: #3b82f6; /* Blauer Hintergrund beim Hover */
+}
+
+body.dark-mode #content {
+    background-color: #181818; /* Dunkler Hintergrund für den Content-Bereich */
+}
+
+/* Navbar Links */
+.navbar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.navbar-link {
+    margin: 0 15px;
+    text-decoration: none;
+    color: white; /* Weiße Schriftfarbe */
+    font-size: 1em; /* Schriftgröße */
+    transition: color 0.3s; /* Farbwechsel-Animation */
+}
+
+.navbar-link:hover {
+    color: #3b82f6; /* Blaue Farbe beim Hover */
+}
+
+/* Logo-Container separat und links oben positionieren */
+.logo-container {
+    position: absolute;
+    top: 40px; /* Abstand vom oberen Rand */
+    left: 40px; /* Abstand vom linken Rand */
+    z-index: 1000; /* Über anderen Elementen */
+}
+
+.logo {
+    height: 100px; /* Vergrößere das Logo nach Bedarf */
+    position: fixed; /* Fixiere das Logo */
+    top: 40px; /* Abstand vom oberen Rand */
+    left: 40px; /* Abstand vom linken Rand */
+    z-index: 1000; /* Stelle sicher, dass das Logo über anderen Inhalten liegt */
+}
+
+#backups {
+    padding: 20px; /* Innenabstand */
+    margin-top: 80px; /* Abstand oben anpassen */
+    background-color: #f9f9f9; /* Heller Hintergrund */
+    border: 1px solid #ddd; /* Heller Rand */
+    border-radius: 5px; /* Abgerundete Ecken */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Schatten */
+    margin-bottom: 80px; /* Abstand unten */
+}
+
+#backups h2 {
+    font-size: 24px; /* Schriftgröße */
+    margin-bottom: 15px; /* Abstand unten */
+}
+
+#backups h3 {
+    font-size: 20px; /* Schriftgröße */
+    margin-top: 20px; /* Abstand oben */
+    margin-bottom: 10px; /* Abstand unten */
+}
+
+#create-backup {
+    padding: 10px 15px; /* Innenabstand */
+    background-color: #007bff; /* Blauer Hintergrund */
+    color: white; /* Weiße Schriftfarbe */
+    border: none; /* Kein Rand */
+    border-radius: 4px; /* Abgerundete Ecken */
+    cursor: pointer; /* Zeiger-Cursor */
+    font-size: 16px; /* Schriftgröße */
+}
+
+#create-backup:hover {
+    background-color: #104e91; /* Dunkleres Blau beim Hover */
+}
+
+#backups-list {
+    margin-top: 10px; /* Abstand oben */
+    padding: 10px; /* Innenabstand */
+    border: 1px solid #ddd; /* Heller Rand */
+    border-radius: 5px; /* Abgerundete Ecken */
+    background-color: #fff; /* Weißer Hintergrund */
+}
+
+#backups-list div {
+    padding: 8px; /* Innenabstand */
+    border-bottom: 1px solid #eee; /* Untere Grenze */
+}
+
+#backups-list div:last-child {
+    border-bottom: none; /* Entferne untere Grenze vom letzten Element */
+}
+
+#backups-list span {
+    margin-right: 10px; /* Abstand nach rechts */
+}
+
+#backups-list a {
+    color: #2196F3; /* Blaue Farbe für Links */
+    text-decoration: none; /* Keine Unterstreichung */
+}
+
+#backups-list a:hover {
+    text-decoration: underline; /* Unterstreichung beim Hover */
+}
+
+.backup-button {
+    padding: 8px 16px; /* Innenabstand */
+    margin: 5px; /* Abstand */
+    background-color: #4CAF50; /* Grüner Hintergrund */
+    color: white !important; /* Erzwingt die Schriftfarbe auf weiß */
+    border: none; /* Kein Rand */
+    border-radius: 5px; /* Abgerundete Ecken */
+    cursor: pointer; /* Zeiger-Cursor */
+    text-decoration: none; /* Für Download-Links */
+    display: inline-block; /* Inline-Block */
+}
+
+.backup-button:hover {
+    background-color: #45a049; /* Dunkleres Grün beim Hover */
+}
+
+.delete-backup {
+    background-color: #f44336; /* Rot für Löschen */
+}
+
+.delete-backup:hover {
+    background-color: #e53935; /* Dunkleres Rot beim Hover */
+}
+
+#debug-toggle {
+    margin-bottom: 20px; /* Abstand unterhalb des Buttons */
+}
+
+#debug-button {
+    padding: 10px 20px; /* Innenabstand */
+    font-size: 16px; /* Schriftgröße */
+    color: white; /* Weiße Schriftfarbe */
+    border: none; /* Kein Rand */
+    border-radius: 5px; /* Abgerundete Ecken */
+    cursor: pointer; /* Zeiger-Cursor */
+    transition: background-color 0.3s ease; /* Weiche Übergänge bei Farbwechsel */
+}
+
+#debug-button:hover {
+    opacity: 0.8; /* Leichte Transparenz beim Hover */
+}
+
+.log-box {
+    position: relative; /* Setzt die Positionierung für das Container-Element */
+    padding: 20px; /* Innenabstand der Box */
+}
+
+.log-header {
+    display: flex; /* Flexbox verwenden */
+    justify-content: space-between; /* Platz zwischen Titel und Button */
+    align-items: flex-start; /* Elemente oben ausrichten */
+    margin-bottom: 8px; /* Abstand zwischen Header und Inhalt */
+}
+
+.log-button {
+    background-color: #4CAF50; /* Beispiel Hintergrundfarbe */
+    color: white; /* Beispiel Textfarbe */
+    border: none; /* Keine Umrandung */
+    padding: 6px 10px; /* Innenabstand */
+    cursor: pointer; /* Zeigt Hand-Cursor an */
+    position: relative; /* Für zusätzliche Anpassungen */
+}
+
+/* Dark Mode spezifische Styles */
+body.dark-mode .navbar-link {
+    color: #e0e0e0; /* Helle Schriftfarbe für Navbar-Links */
+}
+
+body.dark-mode .navbar-link:hover {
+    color: #3b82f6; /* Blaue Farbe beim Hover */
+}
+
+body.dark-mode #backups {
+    background-color: #1f2937; /* Dunkler Hintergrund für Backups */
+    border: 1px solid #3b82f6; /* Dunkler Rand */
+}
+
+body.dark-mode #backups h2,
+body.dark-mode #backups h3 {
+    color: #e0e0e0; /* Helle Schriftfarbe */
+}
+
+body.dark-mode #create-backup {
+    background-color: #007bff; /* Blauer Hintergrund */
+}
+
+body.dark-mode #create-backup:hover {
+    background-color: #104e91; /* Dunkleres Blau beim Hover */
+}
+
+body.dark-mode #backups-list {
+    background-color: #1f1f1f; /* Dunkler Hintergrund */
+    border: 1px solid #3b82f6; /* Dunkler Rand */
+}
+
+body.dark-mode #backups-list div {
+    background-color: #1f1f1f; /* Dunkler Hintergrund für Listen-Elemente */
+}
+
+body.dark-mode #backups-list a {
+    color: #64b5f6; /* Helle Farbe für Links */
+}
+
+body.dark-mode #backups-list a:hover {
+    text-decoration: underline; /* Unterstreichung beim Hover */
+}
+
+body.dark-mode .backup-button {
+    background-color: #4CAF50; /* Grüner Hintergrund */
+}
+
+body.dark-mode .backup-button:hover {
+    background-color: #45a049; /* Dunkleres Grün beim Hover */
+}
+
+body.dark-mode .delete-backup {
+    background-color: #f44336; /* Rot für Löschen */
+}
+
+body.dark-mode .delete-backup:hover {
+    background-color: #e53935; /* Dunkleres Rot beim Hover */
+}
+
+body.dark-mode #debug-button {
+    background-color: #4CAF50; /* Grüner Hintergrund */
+}
+
+body.dark-mode #debug-button:hover {
+    opacity: 0.8; /* Leichte Transparenz beim Hover */
+}
+
+body.dark-mode .log-box {
+    background-color: #1f2937; /* Dunkler Hintergrund für Log-Box */
+}
+
+body.dark-mode .log-header {
+    color: #e0e0e0; /* Helle Schriftfarbe */
+}
+
+.log-button:hover {
+    background-color: #45a049; /* Hintergrundfarbe beim Hover */
+}
+
+.error-notification {
+    background-color: red !important; /* Erzwingt den roten Hintergrund */
+    color: white !important; /* Weißer Text */
+    padding: 10px 20px; /* Innenabstand */
+    margin-top: 10px; /* Abstand oben */
+    border-radius: 5px; /* Abgerundete Ecken */
+    font-size: 16px; /* Schriftgröße */
+    font-weight: bold; /* Fettdruck */
+    text-align: center; /* Zentrierter Text */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Schatten */
+    z-index: 9999; /* Über anderen Elementen */
+    position: fixed; /* Fixierte Position */
+    top: 10px; /* Abstand vom oberen Rand */
+    right: 10px; /* Abstand vom rechten Rand */
+    max-width: 300px; /* Optionale maximale Breite */
+    word-wrap: break-word; /* Textumbruch */
+}
+
+#debug-message-box {
+    position: fixed; /* Fixierte Position */
+    top: 20px; /* Abstand vom oberen Rand */
+    right: 20px; /* Abstand vom rechten Rand */
+    background-color: orange; /* Hintergrundfarbe */
+    color: white; /* Weißer Text */
+    padding: 10px 20px; /* Innenabstand */
+    border-radius: 5px; /* Abgerundete Ecken */
+    z-index: 1000; /* Über anderen Elementen */
+}
+
+/* Container für den Benutzerbereich */
+#users {
+    padding: 20px; /* Innenabstand */
+    background-color: #f4f4f4; /* Hintergrundfarbe des Benutzerbereichs */
+    border-radius: 8px; /* Abgerundete Ecken */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Schatten */
+    margin-bottom: 20px; /* Abstand unten */
+    margin-top: 80px; /* Abstand oben */
+}
+
+/* Überschrift für den Benutzerbereich */
+#users h2 {
+    margin-bottom: 15px; /* Abstand unter der Überschrift */
+    font-size: 2em; /* Schriftgröße */
+    color: #333; /* Textfarbe */
+}
+
+/* Container für die Benutzerinformationen */
+#users-content {
+    display: flex; /* Flexbox für die Benutzerboxen */
+    flex-wrap: wrap; /* Zeilenumbruch bei Überlauf */
+    justify-content: space-between; /* Gleiche Abstände zwischen den Boxen */
+}
+
+/* Stil für jede Benutzerbox */
+.user-box {
+    background-color: #fff; /* Hintergrundfarbe der Box */
+    border: 1px solid #2196F3; /* Rahmen der Box */
+    border-radius: 8px; /* Abgerundete Ecken */
+    padding: 15px; /* Innenabstand */
+    width: calc(33.33% - 20px); /* Breite der Box */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Schatten */
+    margin-bottom: 20px; /* Abstand unten */
+    transition: box-shadow 0.3s; /* Übergang für Schatteneffekt */
+}
+
+/* Benutzerbox bei Hover */
+.user-box:hover {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Schatten bei Hover */
+}
+
+/* Stil für die Benutzerinformationen */
+.user-info {
+    margin-bottom: 10px; /* Abstand zwischen den Informationen */
+}
+
+/* Stil für die Überschrift (Benutzername) */
+.user-info h3 {
+    margin: 0; /* Kein Margin für den Titel */
+    font-size: 1.5em; /* Schriftgröße für den Titel */
+    color: #333; /* Textfarbe */
+}
+
+/* Stil für die anderen Benutzerinformationen */
+.user-info p {
+    margin: 5px 0; /* Vertikaler Abstand */
+    color: #666; /* Textfarbe */
+}
+
+/* Benutzerliste */
+#users-content {
+    padding: 20px; /* Innenabstand */
+    background-color: #f9f9f9; /* Hintergrundfarbe */
+    border: 1px solid #ddd; /* Rand */
+    border-radius: 5px; /* Abgerundete Ecken */
+}
+
+/* Stil für jedes Benutzeritem */
+.user-item {
+    display: flex; /* Flexbox aktivieren */
+    flex-direction: column; /* Vertikale Anordnung der Elemente */
+    padding: 10px; /* Innenabstand */
+    margin: 10px 0; /* Abstand oben und unten */
+    border: 1px solid #2196F3; /* Rahmen */
+    border-radius: 5px; /* Abgerundete Ecken */
+    width: 280px; /* Feste Breite */
+    height: 325px; /* Feste Höhe */
+    box-sizing: border-box; /* Berücksichtigt Padding und Border */
+    overflow: hidden; /* Versteckt überlaufenden Inhalt */
+}
+
+/* Stil für den Text innerhalb der Benutzerbox */
+.user-item p {
+    margin: 5px 0; /* Abstand zwischen den Absätzen */
+    line-height: 1.2; /* Zeilenhöhe anpassen (Standardwert ist oft 1.5) */
+}
+
+/* Stil für den Lösch-Button */
+.delete-user {
+    background-color: #ff4d4d; /* Rote Hintergrundfarbe */
+    color: white; /* Weißer Text */
+    border: none; /* Kein Rahmen */
+    padding: 5px 10px; /* Polsterung */
+    border-radius: 3px; /* Abgerundete Ecken */
+    cursor: pointer; /* Hand-Cursor */
+    transition: background-color 0.3s; /* Weiche Übergänge */
+    margin-top: auto; /* Schiebt den Button nach unten */
+}
+
+/* Hover-Effekt für den Lösch-Button */
+.delete-user:hover {
+    background-color: #ff1a1a; /* Dunkleres Rot beim Hover */
+}
+
+/* Stil für gerade Benutzerboxen */
+.user-item.even {
+    background-color: #faf8f8; /* Hintergrundfarbe für gerade Boxen */
+}
+
+/* Stil für ungerade Benutzerboxen */
+.user-item.odd {
+    background-color: #d6d6d6; /* Hintergrundfarbe für ungerade Boxen */
+}
+
+/* Stil für die Überschrift der Benutzerliste */
+h2 {
+    color: #333; /* Textfarbe */
+    font-size: 24px; /* Schriftgröße */
+    margin-bottom: 15px; /* Abstand unten */
+}
+
+/* Dark Mode Styles */
+.dark-mode #users {
+    background-color: #1f2937; /* Dunkler Hintergrund für den Benutzerbereich */
+    color: #e0e0e0; /* Helle Schriftfarbe */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5); /* Dunklerer Schatten */
+}
+
+.dark-mode #users h2 {
+    color: #e0e0e0; /* Helle Schriftfarbe für die Überschrift */
+}
+
+.dark-mode .user-box {
+    background-color: #2a2a2a; /* Dunkler Hintergrund für die Benutzerbox */
+    border: 1px solid #3b82f6; /* Helle Rahmenfarbe für die Box */
+}
+
+.dark-mode .user-info h3 {
+    color: #e0e0e0; /* Helle Schriftfarbe für Benutzernamen */
+}
+
+.dark-mode .user-info p {
+    color: #bbb; /* Helle Schriftfarbe für andere Benutzerinformationen */
+}
+
+.dark-mode #users-content {
+    background-color: #1f1f1f; /* Dunkler Hintergrund für den Inhalt */
+    border: 1px solid #444; /* Dunkler Rand */
+}
+
+.dark-mode .user-item {
+    background-color: #2a2a2a; /* Dunkler Hintergrund für Benutzeritems */
+    border: 1px solid #3b82f6; /* Helle Rahmenfarbe für Benutzeritems */
+}
+
+.dark-mode .user-item.even {
+    background-color: #3a3a3a; /* Dunklerer Hintergrund für gerade Boxen */
+}
+
+.dark-mode .user-item.odd {
+    background-color: #4a4a4a; /* Dunklerer Hintergrund für ungerade Boxen */
+}
+
+
+#dev-report-content {
+    display: flex; /* Flexbox für die Entwicklerberichte */
+    flex-wrap: wrap; /* Erlaubt Zeilenumbruch */
+    gap: 10px; /* Abstand zwischen den Boxen */
+}
+
+/* Dark Mode Styles für den Entwicklerberichte-Container */
+.dark-mode #dev-report-content {
+    background-color: #1f2937; /* Dunkler Hintergrund im Dark Mode */
+    border: 1px solid #3b82f6; /* Optional: heller Rand für besseren Kontrast */
+    padding: 15px; /* Innenabstand für den Container */
+}
+
+
+.dev-report-item {
+    border-radius: 5px; /* Abgerundete Ecken */
+    padding: 10px; /* Innenabstand */
+    width: calc(20% - 10px); /* Breite der Box */
+    box-sizing: border-box; /* Berücksichtigt Padding und Border */
+    margin-top: 30px; /* Abstand oben */
+    transition: background-color 0.3s, border-color 0.3s; /* Weiche Übergänge */
+}
+
+/* Dark Mode Styles für Entwicklerberichtselemente */
+.dark-mode .dev-report-item {
+    background-color: #1f1f1f; /* Dunkler Hintergrund */
+    border-color: #3b82f6; /* Optional: heller Rand für bessere Sichtbarkeit */
+}
+
+/* Typ- und Namensdarstellung */
+.dev-report-type {
+    font-weight: bold; /* Fettdruck für Typ */
+    color: #0c0c0c; /* Helle Schriftfarbe */
+}
+
+.dev-report-message {
+    margin-top: 10px; /* Abstand zwischen Name und Text */
+    color: #070707; /* Helle Schriftfarbe für die Nachricht */
+}
+
+/* Fehlerberichte */
+.dev-report-item.bug {
+    border: 2px solid red; /* Roter Rahmen für Fehlerberichte */
+    background-color: rgba(255, 0, 0, 0.1); /* Helles Rot mit Transparenz */
+}
+
+/* Feature-Anfragen */
+.dev-report-item.feature-request {
+    border: 2px solid green; /* Grüner Rahmen für Feature-Anfragen */
+    background-color: rgba(0, 255, 0, 0.1); /* Helles Grün mit Transparenz */
+}
+
+/* Film Reports */
+.dev-report-item.film-report {
+    border: 2px solid orange; /* Oranger Rahmen für Film Reports */
+    background-color: rgba(255, 165, 0, 0.1); /* Helles Orange mit Transparenz */
+}
+
+
+.dark-mode .dev-report-type, .dark-mode .dev-report-user, .dark-mode .dev-report-message {
+    font-size: 16px; /* Schriftgröße für Typ, Benutzername und Nachricht */
+    margin-bottom: 5px; /* Abstand unten */
+    color: #ffffff; /* Helle Schriftfarbe */
+}
+
+
+button {
+    background-color: #f44336; /* Rote Hintergrundfarbe */
+    color: white; /* Weißer Text */
+    border: none; /* Kein Rahmen */
+    border-radius: 5px; /* Abgerundete Ecken */
+    padding: 8px 12px; /* Innenabstand */
+    cursor: pointer; /* Zeiger-Cursor */
+    transition: background-color 0.3s; /* Übergangseffekt */
+    margin-top: 10px; /* Abstand oben */
+}
+
+button:hover {
+    background-color: #d32f2f; /* Dunkleres Rot beim Hover */
+}
+
+button:focus {
+    outline: none; /* Keine Umrandung beim Fokussieren */
+}
+
+/* Allgemeine Log-Button-Styling */
+.log-button {
+    padding: 10px 15px; /* Innenabstand */
+    background-color: #007bff; /* Blauer Hintergrund */
+    color: white; /* Weiße Schrift */
+    border: none; /* Kein Rahmen */
+    border-radius: 5px; /* Abgerundete Ecken */
+    cursor: pointer; /* Zeiger-Cursor */
+    margin-right: 5px; /* Abstand rechts */
+}
+
+.log-button:hover {
+    background-color: #0056b3; /* Dunkleres Blau beim Hover */
+}
+
+/* Rote Buttons für Löschen-Aktionen */
+.red-button {
+    background-color: #dc3545; /* Rote Hintergrundfarbe */
+}
+
+.red-button:hover {
+    background-color: #c82333; /* Dunkleres Rot beim Hover */
+}
+
+/* FAQ Container */
+#faq-container {
+    margin: 20px; /* Abstand um den Container */
+    margin-top: 80px; /* Abstand oben */
+    padding: 20px; /* Innenabstand */
+    background-color: #f9f9f9; /* Hellgrau als Hintergrund */
+    border-radius: 8px; /* Abgerundete Ecken */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sanfte Schatten */
+}
+
+/* Header für FAQ */
+.log-header h3 {
+    margin-bottom: 10px; /* Abstand unten */
+    font-size: 24px; /* Größerer Schriftgrad */
+    color: #333; /* Dunkelgraue Schriftfarbe */
+}
+
+/* Dark Mode Styles für den Header */
+.dark-mode .log-header h3 {
+    color: #e0e0e0; /* Helle Schriftfarbe im Dark Mode */
+}
+
+
+/* Buttons im Header */
+.log-button {
+    background-color: #007bff; /* Blau für die Schaltflächen */
+    color: white; /* Weiße Schrift */
+    padding: 10px 15px; /* Polsterung für die Schaltflächen */
+    border: none; /* Kein Rahmen */
+    border-radius: 5px; /* Abgerundete Ecken */
+    cursor: pointer; /* Zeiger bei Hover */
+    margin-right: 10px; /* Abstand zwischen den Schaltflächen */
+    transition: background-color 0.3s; /* Sanfter Übergang */
+}
+
+.log-button:hover {
+    background-color: #0056b3; /* Dunkleres Blau bei Hover */
+}
+
+/* Pre-Tag für FAQ-Anzeigen */
+#faq-container pre {
+    background-color: #fff; /* Weißer Hintergrund für den Textbereich */
+    border: 1px solid #ddd; /* Graue Umrandung */
+    padding: 15px; /* Polsterung für den Text */
+    border-radius: 5px; /* Abgerundete Ecken */
+    overflow-y: auto; /* Scrollbar bei Überlauf */
+    max-height: 400px; /* Maximalhöhe für den Textbereich */
+    font-family: monospace; /* Monospace-Schriftart für den FAQ-Text */
+    color: #333; /* Dunkelgraue Schriftfarbe */
+}
+
+/* Fehler- und Erfolgsmeldungen */
+.alert {
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+    display: none; /* Standardmäßig versteckt */
+}
+
+.alert.success {
+    background-color: #d4edda; /* Helle grüne Farbe für Erfolgsmeldungen */
+    color: #155724; /* Dunkelgrüne Schriftfarbe */
+}
+
+.alert.error {
+    background-color: #f8d7da; /* Helle rote Farbe für Fehlermeldungen */
+    color: #721c24; /* Dunkelrote Schriftfarbe */
+}
+
+.red-button {
+    background-color: red; /* Oder jede andere gewünschte Farbe */
+    color: white; /* Textfarbe */
+    border: none; /* Rahmen entfernen */
+    padding: 10px 15px; /* Polsterung hinzufügen */
+    cursor: pointer; /* Zeiger ändern, wenn darüber gefahren wird */
+}
+
+.red-button:hover {
+    background-color: darkred; /* Dunklere Farbe beim Hover */
+}
+
+/* Dark Mode Styles */
+body.dark-mode {
+    background-color: #181818; /* Dunkler Hintergrund */
+    color: #e0e0e0; /* Helle Schriftfarbe */
+}
+
+/* Weitere Darkmode-Anpassungen */
+.dark-mode .navbar-link {
+    color: #e0e0e0; /* Helle Links */
+}
+
+.dark-mode #backups {
+    background-color: #2a2a2a; /* Dunkler Hintergrund für Backups */
+}
+
+.dark-mode #faq-container {
+    background-color: #1f2937; /* Dunkler Hintergrund für FAQ */
+}
+
+.dark-mode .user-box {
+    background-color: #1f1f1f; /* Dunkler Hintergrund für Benutzerboxen */
+    border: 1px solid #3b82f6; /* Farbänderung nach Bedarf */
+}
+
+/* Toggle Switch Styles */
+.switch {
+    position: fixed; /* Fixiert die Position des Schalters */
+    bottom: 20px; /* Abstand vom unteren Rand */
+    right: 20px; /* Abstand vom rechten Rand */
+    z-index: 1000; /* Sicherstellen, dass es über anderen Inhalten liegt */
+    width: 50px; /* Breite des Umschalters */
+    height: 24px; /* Höhe des Umschalters */
+}
+
+.switch input {
+    opacity: 0; /* Unsichtbar, um nur den Slider anzuzeigen */
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc; /* Hintergrundfarbe des Umschalters */
+    transition: .4s; /* Übergang für den Umschalters */
+    border-radius: 34px; /* Abgerundete Ecken für den Umschalters */
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px; /* Höhe des Schiebereglers */
+    width: 20px; /* Breite des Schiebereglers */
+    left: 2px; /* Abstand vom linken Rand */
+    bottom: 2px; /* Abstand vom unteren Rand */
+    background-color: white; /* Hintergrundfarbe des Schiebereglers */
+    border-radius: 50%; /* Abgerundete Ecken für den Schieberegler */
+    transition: .4s; /* Übergang für den Schiebereglers */
+}
+
+/* Zustand für den aktiven Schieberegler */
+input:checked + .slider {
+    background-color: #3b82f6; /* Hintergrundfarbe des Umschalters bei Aktivierung */
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px); /* Bewege den Schieberegler nach rechts */
+}
+
+.general-notification {
+    border: 2px solid rgb(224, 248, 7);
+    background-color: rgb(255, 0, 0);
+    padding: 10px;
+    border-radius: 5px; /* Runde Ecken */
+    position: fixed;
+    top: 20px;
+    right: 30px;
+    z-index: 1000;
+    color: black;
+    margin-top: 60px;
+}

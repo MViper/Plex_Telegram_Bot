@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="icon" type="image/png" href="img/Viper-plex-logo.png">
+    <title id="web-title">${WEB_NAME}</title> <!-- Platzhalter für den Titel -->
+</head>
+<body>
+     <!-- Logo separat einfügen -->
+     <div class="logo-container">
+        <a href="index.html">
+            <img src="img/Viper-plex-logo.png" alt="Viper-Plex Logo" class="logo">
+        </a>
+    </div>
+    
+    <div class="welcome-box">
+        <h1 id="welcome-title">${WEB_NAME}</h1> <!-- ID für das h1-Tag -->
+        <nav class="navbar">
+            <div class="navbar-container">
+                <a href="index.html" class="navbar-link">Home</a>
+                <a href="wunsch.html" class="navbar-link">Film & Serien Wunsch</a>
+                <a href="anleitung.html" class="navbar-link">Anleitung</a>
+                <a href="funktionen.html" class="navbar-link">Funktionen</a>
+                <a href="faq.html" class="navbar-link">FAQs</a>
+                <a href="kontakt.html" class="navbar-link">Kontakt</a>
+                <a href="report.html" class="navbar-link">Meldungen</a>
+                <a href="admin.html" class="navbar-link">Admin</a>
+            </div>
+        </nav>
+        <!-- Darkmode Umschalter -->
+        <label class="switch">
+            <input type="checkbox" id="dark-mode-toggle">
+            <span class="slider"></span>
+        </label>
+    </div>
+    
+    <div id="sidebar" style="display:none;">
+        <h2> </h2>
+        <ul>
+            <li><a href="#dashboard" id="dashboard-link">Dashboard</a></li>
+            <li><a href="#logs" id="logs-link">Logs</a></li>
+            <li><a href="#users" id="users-link">Benutzer</a></li>
+            <li><a href="#wishes" id="wishes-link">Offene Wünsche</a></li>
+            <li><a href="#feedback" id="feedback-link">Feedback</a></li>
+            <li><a href="#send-message" id="send-message-link">Nachricht an Benutzer</a></li>
+            <li><a href="#backups" id="backups-link">Backups</a></li>
+            <li><a href="#dev-report" id="dev-report-link">Dev Report</a></li>
+            <li><a href="#faq" id="faq-link">FAQs</a></li>
+            <li><a href="#admin-help" id="admin-help-link">Admin Hilfe</a></li>
+            <li><a href="#logout" id="logout-button" onclick="logout()">Logout</a></li>
+        </ul>
+    </div>
+
+    <div id="content">
+        <div id="login-form">
+            <div class="login-container">
+                <img src="img/Viper-plex-logo.png" alt="Logo" class="login-logo">
+                <h2>Admin Login</h2>
+                <form id="form" action="/admin" method="POST">
+                    <input type="password" name="password" placeholder="Passwort" required>
+                    <div class="error-message" id="error-message" style="display:none;">Ungültiges Passwort!</div>
+                    <button type="submit">Einloggen</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="admin-area" style="display:none;">
+            <h2>Willkommen im Admin-Bereich!</h2>
+            <p>Hier kannst du alle administrativen Funktionen nutzen.</p>
+            
+            <div id="notification" class="notification"></div>
+            <!-- Logout-Timer -->
+            <div id="logout-timer-box" style="display: flex; justify-content: flex-end; background-color: rgba(255, 255, 255, 0); padding: 10px; border-bottom: 2px solid rgba(255, 0, 0, 0);">
+                <div id="logout-timer" style="color: rgb(255, 0, 0); font-weight: bold;"></div>
+            </div>
+
+
+            <div id="dashboard">
+                <div class="dashboard-container">
+                    <div id="bot-uptime" class="dashboard-box">
+                        <div class="dashboard-header">
+                            <h3>Bot Laufzeit</h3>
+                            <button class="resize" onclick="resizeBox(this)">🔍</button>
+                        </div>
+                        Lade aktuelle Laufzeit des Bots...
+                    </div>
+                </div>
+                <div class="dashboard-container">
+                    <div id="bot-restart" class="dashboard-box">
+                        <div class="dashboard-header">
+                            <h3>Letzter Neustart</h3>
+                            <button class="resize" onclick="resizeBox(this)">🔍</button>
+                        </div>
+                        Lade letzten Neustart des Bots...
+                    </div>
+                </div>
+
+                <div id="media-count" class="dashboard-box">
+                    <div class="dashboard-header">
+                        <h3>Medienanzahl</h3>
+                        <button class="resize" onclick="resizeBox(this)"></button>
+                    </div>
+                    <div id="media-count-content">
+                        Lade Anzahl der Filme und Serien...
+                    </div>
+                </div>
+                
+                <div class="dashboard-container">
+                    <div id="server-info" class="dashboard-box">
+                        <div class="dashboard-header">
+                            <h3>Server Informationen</h3>
+                            <button class="resize" onclick="resizeBox(this)">🔍</button>
+                        </div>
+                        Lade Serverinformationen...
+                    </div>
+                </div>
+                <div class="dashboard-container">
+                    <div id="file-check" class="dashboard-box">
+                        <div class="dashboard-header">
+                            <h3>Dateiüberprüfung</h3>
+                            <button class="resize" onclick="resizeBox(this)">🔍</button>
+                        </div>
+                        Lade Dateiüberprüfung...
+                    </div>
+                </div>
+            </div>
+
+            <div id="faq-container" style="display: none;">
+                <div class="log-header">
+                    <h3>Häufig gestellte Fragen (FAQs)</h3>
+                    <button class="log-button blue-button" onclick="addFaq()">FAQ hinzufügen</button>
+                    <button class="log-button red-button" onclick="deleteFaq()">FAQ löschen</button>
+                </div>
+                <pre>Lade FAQs...</pre> <!-- Dieser <pre>-Tag wird verwendet, um die FAQs anzuzeigen -->
+            </div>
+           
+            <div id="logs" style="display:none;">
+                <h2>Logs</h2>
+            
+                <!-- Debug-Toggle Button -->
+                <div id="debug-toggle">
+                    <button id="debug-button" style="background-color: green; color: white;" onclick="toggleDebugMode()">Debug OFF</button>
+                </div>
+            
+                <div class="log-container">
+                    <div id="command-history" class="log-box">
+                        <div class="log-header">
+                            <h3>Command-Historie</h3>
+                            <button class="log-button" onclick="downloadCommandHistory()">Download Command Log</button>
+                            <button class="log-button red-button" onclick="deleteCommandHistory()">Kommando-Historie löschen</button>
+                        </div>
+                        <pre>Lade Command-Historie...</pre>
+                    </div>
+                    
+                    <div id="error-log" class="log-box">
+                        <div class="log-header">
+                            <h3>Fehlerprotokoll</h3>
+                            <button class="log-button" onclick="downloadErrorLog()">Download Error Log</button>
+                            <button class="log-button red-button" onclick="deleteErrorLog()">Fehlerprotokoll löschen</button>
+                        </div>
+                        <pre>Lade Fehlerprotokolle...</pre>
+                    </div>
+                </div>             
+            </div>
+
+            <!-- Benutzer (User) Bereich -->
+            <div id="users" style="display:none;">
+                <h2>Benutzerinformationen</h2>
+                <div id="users-content" class="users-box">
+                    <p>Lade Benutzerinformationen...</p>
+                </div>
+            </div>
+
+            <div id="send-message" style="display: none;">
+                <h2>Nachricht an alle Benutzer senden</h2>
+                <textarea id="message-input" rows="4" placeholder="Gib hier deine Nachricht ein..."></textarea>
+                <button onclick="sendMessage()">Nachricht senden</button>
+                <div id="send-message-status" style="margin-top: 10px;"></div>
+            </div>
+
+            <div id="wishes" style="display:none;">
+                <h2>Offene Wünsche</h2>
+                <div id="wishes-content" class="wishes-box">
+                    <p>Lade offene Wünsche...</p>
+                </div>
+            </div>
+
+            <div id="feedback" style="display:none;">
+                <h2>Feedback</h2>
+                <div id="feedback-content" class="feedback-box">
+                    <p>Lade Feedback...</p>
+                </div>
+            </div>
+            <div id="admin-help" style="display:none;"> <!-- Admin Hilfe Sektion -->
+                <h3>👨‍💻 Admin-Befehle</h3>
+                <p>Administratoren können folgende Befehle verwenden:</p>
+                <ul>
+                    <li><strong>Nachricht senden:</strong> Mit <code>/admin</code> kann eine Nachricht an alle Nutzer gesendet werden.</li>
+                    <li><strong>Offene Wünsche:</strong> Mit <code>/open_wishes</code> werden alle offenen Filmwünsche angezeigt.</li>
+                    <li><strong>Benutzerinformationen:</strong> Der Befehl <code>/user</code> zeigt spezifische Informationen über Benutzer an.</li>
+                    <li><strong>Newsletter:</strong> Der Befehl <code>/newsletter</code> zeigt den Status der Newsletter-Funktion an.</li>
+                    <li><strong>Logs:</strong> Verwende <code>/logs</code>, um die letzten Fehlermeldungen abzurufen.</li>
+                    <li><strong>Passwort anzeigen:</strong> Mit <code>/passwd</code> wird das Passwort vom Frontend angezeigt.</li>
+                    <li><strong>Support-Ticket:</strong> Mit <code>/support</code> kann ein Support-Ticket an den Bot-Ersteller gesendet werden.</li>
+                </ul>
+                <br/><br/>
+            
+                <h3>⚙️ Dev-Befehle</h3>
+                <p>Für Entwickler stehen folgende spezielle Befehle zur Verfügung:</p>
+                <ul>
+                    <li><strong>Benutzerdaten aktualisieren:</strong> Mit <code>/update</code> wird die <code>user.yml</code> aktualisiert.</li>
+                    <li><strong>Befehlsverlauf:</strong> Der Befehl <code>/command_history</code> zeigt eine Liste der zuletzt verwendeten Befehle.</li>
+                    <li><strong>Backup erstellen:</strong> Verwende <code>/backup</code>, um ein Backup zu erstellen und als ZIP-Datei zu erhalten.</li>
+                    <li><strong>Serverinformationen:</strong> Der Befehl <code>/serverinfo</code> zeigt detaillierte Informationen über den Server an.</li>
+                    <li><strong>Health Check:</strong> Mit <code>/healthcheck</code> wird der Status des Bots überprüft.</li>
+                    <li><strong>Debug-Modus:</strong> Der Befehl <code>/setdebug</code> aktiviert oder deaktiviert den Debug-Modus.</li>
+                </ul>
+            </div>
+            
+
+            <!-- Backup-Bereich hinzufügen -->
+            <div id="backups" style="display:none; position: relative;"> <!-- relative Positionierung für den Container -->
+                <h2>Backups</h2>
+                <div class="log-header">
+                    <button id="create-backup">Backup erstellen</button>
+                    <div id="backup-status"></div>
+                </div>
+                <h3>Verfügbare Backups:</h3>
+                <div id="backups-list"></div>
+                
+                <!-- Hinweis-Label mit absoluter Positionierung -->
+                <p style="position: absolute; top: 20px; right: 20px; color: red;">
+                    Hinweis: Alle Backups sind durch ein Passwort geschützt!
+                </p>
+            </div>
+
+            <div id="dev-report" style="display: none;">
+                <h2>Entwicklerberichte</h2>
+                <div id="dev-report-content">
+                    <!-- Inhalte werden hier geladen -->
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    <footer class="footer">
+        <p>&copy; 2024 M_Viper. Alle Rechte vorbehalten.</p>
+    </footer>
+<script src="js/admin.js"></script>
+</body>
+</html>

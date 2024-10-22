@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" type="image/png" href="img/Viper-plex-logo.png">
+    
+    <title id="web-title">${WEB_NAME}</title> <!-- Platzhalter für den Titel -->
+    
+</head>
+<body>
+    <div class="logo-container">
+        <a href="index.html">
+            <img src="img/Viper-plex-logo.png" alt="Viper-Plex Logo" class="logo">
+        </a>
+    </div>
+    <div class="welcome-box">
+        <h1 id="welcome-title">Willkommen bei ${WEB_NAME}</h1> <!-- ID für das h1-Tag -->
+        <nav class="navbar">
+            <div class="navbar-container">
+                <a href="index.html" class="navbar-link">Home</a>
+                <a href="wunsch.html" class="navbar-link">Film & Serien Wunsch</a>
+                <a href="anleitung.html" class="navbar-link">Anleitung</a>
+                <a href="funktionen.html" class="navbar-link">Funktionen</a>
+                <a href="faq.html" class="navbar-link">FAQs</a>
+                <a href="kontakt.html" class="navbar-link">Kontakt</a>
+                <a href="report.html" class="navbar-link">Meldungen</a>
+                <a href="admin.html" class="navbar-link">Admin</a>
+            </div>
+        </nav>
+        <label class="switch">
+            <input type="checkbox" id="dark-mode-toggle">
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <div class="container">
+        <main class="faq-container" id="faq-section">
+            <h2>Häufig gestellte Fragen</h2>
+            <p>Bitte warten, während die FAQs geladen werden...</p>
+        </main>
+        <aside class="sidebar">
+            <div class="gitea-box">
+                <p>Sieh dir den Code auf <a href="https://git.viper.ipv64.net/M_Viper/Plex-Telegram-Bot" target="_blank">Gitea</a> an!</p>
+                <p>Aktuelle Version: <span id="bot-version"></span></p>
+                <div class="telegram-connect-box">
+                    <p>Verbinde dich mit unserem Telegram-Bot!</p>
+                    <a id="telegram-link" href="#" target="_blank">Jetzt verbinden</a>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 M_Viper. Alle Rechte vorbehalten.</p>
+    </footer>
+    <script src="js/script.js"></script>
+    
+</body>
+</html>
